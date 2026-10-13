@@ -64,6 +64,9 @@ def fixture_repo(extra=None) -> Path:
         (root / "problems" / d.name).mkdir(parents=True)
         shutil.copy(d / "problem.toml", root / "problems" / d.name / "problem.toml")
     git(root, "init", "-q", "-b", "main")
+    # 关掉后台自动 gc / maintenance：它们会在 tearDown 删目录时并发写对象，导致偶发失败
+    git(root, "config", "gc.auto", "0")
+    git(root, "config", "maintenance.auto", "false")
     clock = [0]
 
     def commit(msg: str) -> None:
