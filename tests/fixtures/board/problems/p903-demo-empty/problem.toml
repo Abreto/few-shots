@@ -1,0 +1,25 @@
+id = "p903"
+slug = "demo-empty"
+title_zh = "测试题：还没有纪录"
+title_en = "Test: no records yet"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "测试指标"
+metric_en = "test metric"
+direction = "max"
+progress_unit = "个"
+
+baseline_score = "0"
+epsilon = "1/1000"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 65536
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 524288

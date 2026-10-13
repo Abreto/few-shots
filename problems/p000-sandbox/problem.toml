@@ -1,0 +1,31 @@
+# 题目元数据，机器可读，以这份为准。只有裁判组能改（见 .github/CODEOWNERS）。
+# 打分永远使用 main 上的这份文件；PR 里对它的任何改动都不会影响打分。
+
+id = "p000"                       # 题号：p + 三到六位数字；目录名为 <id>-<slug>
+slug = "sandbox"                  # 小写字母、数字、连字符
+title_zh = "Golomb 尺（沙盒）"
+title_en = "Golomb ruler (sandbox)"
+kind = "certificate"              # 证书型题：参与者只提交数据，不提交代码
+sandbox = true                    # 沙盒题：成绩不进记分牌，不发奖励
+
+metric_zh = "长度"
+metric_en = "length"
+direction = "min"                 # max 越大越好 | min 越小越好
+progress_unit = "格"              # 记分牌上的进度单位
+
+baseline_score = "2047"           # 预设基线，精确有理数字符串："123"、"-7"、"22/7"、"0.125"
+epsilon = "1"                     # 最小改进幅度 ε，必须 > 0
+epsilon_mode = "absolute"         # absolute | relative（relative 时幅度为 |当前纪录| × ε）
+progress_transform = "linear"     # linear | log2（log2 要求基线与成绩都 > 0）
+
+verifier_timeout_sec = 60         # 单次验证的硬超时（秒）
+max_certificate_bytes = 65536     # certificate.json 的大小上限（字节）
+
+[submission]                      # 门禁对 PR 文件的限制
+max_files = 8                     # 一个 shot 目录最多几个文件
+max_file_bytes = 262144           # 除 certificate.json 和 SHOT.md 外，单个文件的上限
+max_shot_md_bytes = 32768         # SHOT.md 的上限
+max_total_bytes = 524288          # 一个 shot 的总大小上限
+
+[params]                          # 只给验证器用的题目参数
+n = 12                            # 刻度个数

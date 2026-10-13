@@ -1,0 +1,107 @@
+# 评分流水线。
+#
+# 安全要点（改动前请先读 AGENTS.md 的「维护者须知」）：
+# - 只由 pull_request_target 触发，工作流与脚本永远取自 main；PR 对本文件、scripts/、problems/*/verify/
+#   的改动不影响打分。
+# - 顶层 permissions: {}；打分 job 只读，不引用任何 secrets，不读写 cache，不 checkout PR 分支，
+#   只通过 GitHub API 按白名单下载 PR head SHA 上的 shot 文件。题目由 PR 路径
+#   problems/<题目目录>/shots/<login>/<shot-id>/ 决定，一个 PR 只能涉及一道题；验证器镜像用 main 上
+#   该题的 verify/Dockerfile 构建，在断网、只读、nobody 用户的容器里运行。
+# - PR 中的任何文本都只通过文件（$GITHUB_EVENT_PATH、work/、out/）传给脚本，run: 里不出现任何表达式插值。
+# - 回帖由另一个 job 完成，它只读取打分 job 上传的结果文件；发帖前再读一次暂停开关，并核对 PR 的当前 head
+#   与 main 的当前提交，给 head SHA 写 few-shots/verdict 状态（main 规则集里的必需检查）。
+#   机器人不合并，合并由裁判手动完成，合并按钮受 few-shots/verdict 约束。
+# - 第三方 action 全部固定到完整 commit SHA，注释为对应版本号。
+
+name: score
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: score-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  score:
+    name: score
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout main（只取 main，不取 PR 分支）
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 0
+          allow-unsafe-pr-checkout: false
+
+      - name: 读取暂停开关
+        id: control
+        env:
+          # 只读令牌，只用于通过 GitHub API 读 main 上的 control.toml（避开 raw 地址的 CDN 缓存）。
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -I scripts/control.py --out work/control.json
+
+      - name: 门禁：校验文件白名单并通过 API 下载 shot
+        id: gate
+        if: steps.control.outputs.paused == 'false'
+        env:
+          # 只读令牌（contents: read, pull-requests: read），只用于调用 GitHub API 下载 PR 文件。
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -I scripts/gate.py --event "$GITHUB_EVENT_PATH" --work work
+
+      - name: 构建该题的验证器镜像（来自 main），在隔离容器中验证并判定
+        if: ${{ !cancelled() }}
+        run: python3 -I scripts/score.py --work work --image fewshots-verifier:main --out out/result.json
+
+      - name: 上传结果文件
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: score-result
+          path: out/result.json
+          if-no-files-found: error
+          retention-days: 14
+
+  report:
+    name: report
+    needs: score
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Checkout main（只取 main，不取 PR 分支）
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+          allow-unsafe-pr-checkout: false
+
+      - name: 下载结果文件
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: score-result
+          path: in
+
+      - name: 发布或更新评分评论，写 few-shots/verdict 状态
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -I scripts/report.py --result in/result.json --event "$GITHUB_EVENT_PATH" --post

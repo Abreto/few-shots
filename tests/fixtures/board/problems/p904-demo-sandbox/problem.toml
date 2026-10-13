@@ -1,0 +1,25 @@
+id = "p904"
+slug = "demo-sandbox"
+title_zh = "测试题：沙盒"
+title_en = "Test: sandbox"
+kind = "certificate"
+sandbox = true
+
+metric_zh = "测试指标"
+metric_en = "test metric"
+direction = "max"
+progress_unit = "个"
+
+baseline_score = "0"
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 65536
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 524288

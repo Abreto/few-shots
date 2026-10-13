@@ -1,0 +1,25 @@
+id = "p902"
+slug = "demo-min"
+title_zh = "测试题：越小越好 | 对数进度"
+title_en = "Test: lower is better, log2 progress"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "测试指标"
+metric_en = "test metric"
+direction = "min"
+progress_unit = "倍（log2）"
+
+baseline_score = "1000"
+epsilon = "1/100"
+epsilon_mode = "relative"
+progress_transform = "log2"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 65536
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 524288

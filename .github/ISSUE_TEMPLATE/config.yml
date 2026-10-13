@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 私下报告漏洞
+    url: https://github.com/few-shots/few-shots/security/advisories/new
+    about: 验证器、打分流程或记分牌的漏洞请私下报告，不要开公开 Issue。
+  - name: 规则
+    url: https://github.com/few-shots/few-shots/blob/main/RULES.md
+    about: 规则、有效突破的定义和奖励。
+  - name: 怎么提交 shot
+    url: https://github.com/few-shots/few-shots/blob/main/CONTRIBUTING.md
+    about: 提交 shot 不需要开 Issue，直接开 PR。

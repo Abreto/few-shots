@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+# 评分流水线的临时目录
+/work/
+/out/
+/in/

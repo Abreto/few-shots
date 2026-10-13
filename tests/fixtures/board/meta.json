@@ -1,0 +1,77 @@
+{
+  "order": [
+    "p901-demo-max/alice/first",
+    "p901-demo-max/bob/tiny",
+    "p901-demo-max/carol/big",
+    "p901-demo-max/dave/exact",
+    "p901-demo-max/eve/nofm",
+    "p901-demo-max/mallory/inject",
+    "p901-demo-max/trudy/fake",
+    "p901-demo-max/victor/claim",
+    "p901-demo-max/bad_login/x",
+    "p901-demo-max/zoe/Upper",
+    "p902-demo-min/frank/one",
+    "p902-demo-min/grace/same",
+    "p902-demo-min/ivan/tie",
+    "p902-demo-min/heidi/tie",
+    "p902-demo-min/judy/direct",
+    "p902-demo-min/kim/small"
+  ],
+  "merges": {
+    "problems/p901-demo-max/shots/alice/first/SHOT.md": {
+      "at": "2001-01-01T10:00:00Z",
+      "pr": 3
+    },
+    "problems/p901-demo-max/shots/bob/tiny/SHOT.md": {
+      "at": "2001-01-01T11:00:00Z",
+      "pr": 5
+    },
+    "problems/p901-demo-max/shots/carol/big/SHOT.md": {
+      "at": "2001-01-01T12:00:00Z",
+      "pr": 4
+    },
+    "problems/p901-demo-max/shots/dave/exact/SHOT.md": {
+      "at": "2001-01-01T13:00:00+00:00",
+      "pr": 7
+    },
+    "problems/p901-demo-max/shots/eve/nofm/SHOT.md": {
+      "at": "2001-01-01T13:30:00Z",
+      "pr": 8
+    },
+    "problems/p901-demo-max/shots/mallory/inject/SHOT.md": {
+      "at": "2001-01-01T22:00:00+08:00",
+      "pr": 9
+    },
+    "problems/p901-demo-max/shots/trudy/fake/SHOT.md": {
+      "at": "2001-01-01T15:00:00Z",
+      "pr": 12
+    },
+    "problems/p901-demo-max/shots/victor/claim/SHOT.md": {
+      "at": "2001-01-01T16:00:00Z",
+      "pr": 13
+    },
+    "problems/p902-demo-min/shots/frank/one/SHOT.md": {
+      "at": "2001-01-02T09:00:00Z",
+      "pr": 2
+    },
+    "problems/p902-demo-min/shots/grace/same/SHOT.md": {
+      "at": "2001-01-02T10:00:00Z",
+      "pr": 3
+    },
+    "problems/p902-demo-min/shots/ivan/tie/SHOT.md": {
+      "at": "2001-01-03T00:00:00Z",
+      "pr": 10
+    },
+    "problems/p902-demo-min/shots/heidi/tie/SHOT.md": {
+      "at": "2001-01-03T00:00:00Z",
+      "pr": 11
+    },
+    "problems/p902-demo-min/shots/kim/small/SHOT.md": {
+      "at": "2001-01-03T07:00:00Z",
+      "pr": 14
+    }
+  },
+  "unverified": {
+    "problems/p901-demo-max/shots/victor/claim/SHOT.md": "合并 PR 的 head 上没有机器人判定的有效突破（few-shots/verdict）"
+  }
+}

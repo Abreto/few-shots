@@ -1,0 +1,30 @@
+# main 上的单元测试。只在 main 前进和手动触发时运行：PR 上不自动运行测试，因为那会执行 PR 里的代码。
+# 只读权限，不用任何 secrets。裁判审 PR 时在本地运行 python3 tools/run_tests.py。
+name: test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unittest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: 检出
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: 全部测试
+        run: python3 -I tools/run_tests.py

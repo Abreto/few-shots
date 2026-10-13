@@ -1,0 +1,159 @@
+{
+  "updated_at": "2001-01-04T12:00:00Z",
+  "problems": [
+    {
+      "id": "p901",
+      "slug": "demo-max",
+      "dir": "problems/p901-demo-max",
+      "title_zh": "测试题：越大越好",
+      "title_en": "Test: higher is better",
+      "repo": "few-shots/few-shots",
+      "url": "https://github.com/few-shots/few-shots/tree/main/problems/p901-demo-max",
+      "metric_zh": "测试指标",
+      "metric_en": "test metric",
+      "direction": "max",
+      "unit": "分",
+      "baseline": "10",
+      "epsilon": "1",
+      "epsilon_mode": "absolute",
+      "progress_transform": "linear",
+      "current": {
+        "score": "15",
+        "login": "mallory",
+        "models": [
+          "`x` | <img src=x> [a](http://e) ## h",
+          "Model B"
+        ],
+        "at": "2001-01-01T14:00:00Z",
+        "pr": 9
+      },
+      "records": [
+        {
+          "score": "11",
+          "login": "alice",
+          "models": [
+            "Model A"
+          ],
+          "at": "2001-01-01T10:00:00Z",
+          "pr": 3,
+          "shot": "first"
+        },
+        {
+          "score": "25/2",
+          "login": "carol",
+          "models": [
+            "Model A",
+            "Model C"
+          ],
+          "at": "2001-01-01T12:00:00Z",
+          "pr": 4,
+          "shot": "big"
+        },
+        {
+          "score": "27/2",
+          "login": "dave",
+          "models": [
+            "Model D"
+          ],
+          "at": "2001-01-01T13:00:00Z",
+          "pr": 7,
+          "shot": "exact"
+        },
+        {
+          "score": "15",
+          "login": "mallory",
+          "models": [
+            "`x` | <img src=x> [a](http://e) ## h",
+            "Model B"
+          ],
+          "at": "2001-01-01T14:00:00Z",
+          "pr": 9,
+          "shot": "inject"
+        }
+      ],
+      "progress": "5",
+      "progress_pct": 50.0
+    },
+    {
+      "id": "p902",
+      "slug": "demo-min",
+      "dir": "problems/p902-demo-min",
+      "title_zh": "测试题：越小越好 | 对数进度",
+      "title_en": "Test: lower is better, log2 progress",
+      "repo": "few-shots/few-shots",
+      "url": "https://github.com/few-shots/few-shots/tree/main/problems/p902-demo-min",
+      "metric_zh": "测试指标",
+      "metric_en": "test metric",
+      "direction": "min",
+      "unit": "倍（log2）",
+      "baseline": "1000",
+      "epsilon": "1/100",
+      "epsilon_mode": "relative",
+      "progress_transform": "log2",
+      "current": {
+        "score": "243/5",
+        "login": "kim",
+        "models": [
+          "Model F"
+        ],
+        "at": "2001-01-03T07:00:00Z",
+        "pr": 14
+      },
+      "records": [
+        {
+          "score": "100",
+          "login": "frank",
+          "models": [
+            "Model A"
+          ],
+          "at": "2001-01-02T09:00:00Z",
+          "pr": 2,
+          "shot": "one"
+        },
+        {
+          "score": "99/2",
+          "login": "ivan",
+          "models": [
+            "Model D"
+          ],
+          "at": "2001-01-03T00:00:00Z",
+          "pr": 10,
+          "shot": "tie"
+        },
+        {
+          "score": "243/5",
+          "login": "kim",
+          "models": [
+            "Model F"
+          ],
+          "at": "2001-01-03T07:00:00Z",
+          "pr": 14,
+          "shot": "small"
+        }
+      ],
+      "progress": "4.362900",
+      "progress_pct": 43.78
+    },
+    {
+      "id": "p903",
+      "slug": "demo-empty",
+      "dir": "problems/p903-demo-empty",
+      "title_zh": "测试题：还没有纪录",
+      "title_en": "Test: no records yet",
+      "repo": "few-shots/few-shots",
+      "url": "https://github.com/few-shots/few-shots/tree/main/problems/p903-demo-empty",
+      "metric_zh": "测试指标",
+      "metric_en": "test metric",
+      "direction": "max",
+      "unit": "个",
+      "baseline": "0",
+      "epsilon": "1/1000",
+      "epsilon_mode": "absolute",
+      "progress_transform": "linear",
+      "current": null,
+      "records": [],
+      "progress": null,
+      "progress_pct": 0.0
+    }
+  ]
+}

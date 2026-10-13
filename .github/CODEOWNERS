@@ -1,0 +1,10 @@
+* @few-shots/referees
+# 上一行必须保持为首行：默认所有文件归裁判组（验证器、计分脚本、工作流、题面、problem.toml、
+# control.toml、规则文档等）。后面的规则覆盖前面的规则。
+
+# 参与者的 shot 目录不设所有者（无所有者的模式行）。
+/problems/*/shots/
+
+# 显式归裁判组：CODEOWNERS 自身与整个 .github/。
+/.github/ @few-shots/referees
+/.github/CODEOWNERS @few-shots/referees

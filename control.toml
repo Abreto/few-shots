@@ -1,0 +1,15 @@
+# Few Shots 暂停开关。只有裁判组能改（见 .github/CODEOWNERS）。
+#
+# 打分工作流（score.yml）在打分 job 开头读一次、回帖 job 发帖前再读一次；记分牌工作流（board.yml）
+# 的两个 job 各读一次。都通过 GitHub API 的 contents 接口读取 main 上的这份文件
+# （scripts/control.py），读不到或格式不对时按暂停处理。
+#
+# paused = true 时：
+#   - 打分只回帖"已暂停"，不认定纪录；所有 PR 的 few-shots/verdict 为 pending，无法合并；
+#   - 记分牌和 FEWSHOT.md 停止更新；
+#   - 不发放酒水兑换券与 token。
+
+paused = false
+
+# 暂停时填写原因，会出现在机器人的回帖里（只写事实，不写利用细节）。
+reason = ""

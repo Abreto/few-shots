@@ -1,0 +1,25 @@
+id = "p901"
+slug = "demo-max"
+title_zh = "测试题：越大越好"
+title_en = "Test: higher is better"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "测试指标"
+metric_en = "test metric"
+direction = "max"
+progress_unit = "分"
+
+baseline_score = "10"
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 65536
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 524288

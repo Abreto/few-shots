@@ -1,0 +1,139 @@
+# 记分牌：重建 README 记分牌区、data/board.json、data/cache.json 和每道题的 FEWSHOT.md，内容有变化才提交到 main。
+# - 触发：每 15 分钟；main 上 problems/ 有变化时（例如 shot 被合并）；手动。
+#   GITHUB_TOKEN 推送的提交不会再触发工作流，所以不会循环。
+# - build job 只读（contents / pull-requests / statuses: read）：解析第三方的 SHOT.md，
+#   通过 GitHub REST API GET 核对合并 PR 上的 few-shots/verdict，产出上述文件作为产物。
+# - commit job 才有 contents: write：只把固定路径的文件从产物复制进 checkout 并提交，不解析任何第三方数据。
+#   它推送到 main 需要规则集里给 GitHub Actions 的绕过权限（见 AGENTS.md「维护者须知」）。
+# - 两个 job 都检出触发时的同一个提交；main 在此期间前进时推送会被拒绝，下一次运行再更新。
+# - 两个 job 都先读暂停开关（scripts/control.py，GitHub API 读 main 上的 control.toml）；暂停或读不到就不更新。
+# - 第三方 action 固定到完整 commit SHA；run: 里没有表达式插值。
+name: board
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches: [main]
+    paths: ["problems/**"]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: board
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: read
+    outputs:
+      paused: ${{ steps.control.outputs.paused }}
+    steps:
+      - name: 检出（完整历史，用于按合并顺序排列 shots）
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: 读取暂停开关
+        id: control
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -I scripts/control.py --out "$RUNNER_TEMP/control.json"
+
+      - name: 生成记分牌与 FEWSHOT.md
+        if: steps.control.outputs.paused == 'false'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 -I scripts/build_board.py
+          python3 -I tools/fewshot.py
+          out="$RUNNER_TEMP/board-out"
+          mkdir -p "$out/data"
+          cp README.md "$out/README.md"
+          cp data/board.json data/cache.json "$out/data/"
+          for f in problems/*/FEWSHOT.md; do
+            mkdir -p "$out/$(dirname "$f")"
+            cp "$f" "$out/$f"
+          done
+
+      - name: 上传产物
+        if: steps.control.outputs.paused == 'false'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: board-out
+          path: ${{ runner.temp }}/board-out
+          if-no-files-found: error
+          retention-days: 3
+
+  commit:
+    needs: build
+    if: needs.build.outputs.paused == 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: 检出（与 build job 同一个提交）
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: 再读一次暂停开关
+        id: control
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -I scripts/control.py --out "$RUNNER_TEMP/control.json"
+
+      - name: 下载产物
+        if: steps.control.outputs.paused == 'false'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: board-out
+          path: ${{ runner.temp }}/board-out
+
+      - name: 有变化才提交（只复制固定路径的文件，不读取其内容）
+        if: steps.control.outputs.paused == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          src="$RUNNER_TEMP/board-out"
+          files=(README.md data/board.json data/cache.json)
+          # 题目目录取自本 job 检出的 main（只有裁判组能新建），不取自产物
+          for d in problems/*/; do
+            name="$(basename "$d")"
+            if [[ "$name" =~ ^p[0-9]{3,6}-[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$ ]] && [ -f "$d/problem.toml" ] && [ ! -L "${d%/}" ]; then
+              files+=("problems/$name/FEWSHOT.md")
+            fi
+          done
+          for f in "${files[@]}"; do
+            if [ ! -f "$src/$f" ] || [ -L "$src/$f" ]; then
+              echo "产物缺少 $f" >&2
+              exit 1
+            fi
+            cp "$src/$f" "$f"
+          done
+          git add -- "${files[@]}"
+          if git diff --cached --quiet; then
+            echo "没有变化，不提交。"
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "board: 更新记分牌与 FEWSHOT.md"
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $auth" push origin HEAD:main

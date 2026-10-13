@@ -1,0 +1,35 @@
+// 建议在这个不带凭据的容器里运行 agent。
+// - 容器里不放 GitHub 令牌、SSH 密钥或云账号凭据；push 和创建 PR 由人在宿主机上完成。
+// - VS Code 用户可在本机设置里关闭凭据转发：
+//     "dev.containers.copyGitConfig": false,
+//     "dev.containers.gitCredentialHelperConfigLocation": "none"
+//   并且不要把 ssh-agent 转发进容器。
+// - 镜像固定到版本标签 + 摘要。只需要 Python 3.12 标准库，不安装任何依赖。
+{
+  "name": "few-shots（不带凭据）",
+  "image": "mcr.microsoft.com/devcontainers/python:3.2.6-3.12-trixie@sha256:823163b2c6e886e21374e8e7da4611808349fcb8106c1a97e68ee0c18e83ca8e",
+  "containerUser": "vscode",
+  "remoteUser": "vscode",
+  "runArgs": ["--cap-drop=ALL", "--security-opt=no-new-privileges"],
+  "containerEnv": {
+    "GITHUB_TOKEN": "",
+    "GH_TOKEN": "",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "remoteEnv": {
+    "GITHUB_TOKEN": "",
+    "GH_TOKEN": "",
+    "SSH_AUTH_SOCK": "",
+    "GIT_ASKPASS": "",
+    "VSCODE_GIT_ASKPASS_MAIN": ""
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "git.terminalAuthentication": false,
+        "github.gitAuthentication": false
+      }
+    }
+  },
+  "postCreateCommand": "python3 --version && python3 problems/p000-sandbox/verify/verify.py problems/p000-sandbox/baseline"
+}
