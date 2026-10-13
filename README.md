@@ -3,9 +3,9 @@
 **A few shots at the never-done.**
 
 <!-- intro:start -->
-黎曼猜想、孪生素数猜想、拉姆齐数 R(5,5)。这些问题，数学家研究了几十年到一百多年，到今天没人知道答案。数学之外，物理、化学、生物和工程里，这样的问题还有很多。
+黎曼猜想、孪生素数猜想、拉姆齐数 R(5,5)。这些问题，数学家研究了几十年到一百多年。这一代人，会亲眼看到答案。
 
-Few Shots 收其中进展能用一个数衡量的那一部分。每道题有一个指标、一个预设基线和一段验证器。你带上自己的 agent，交一个更好的答案，验证器当场复算；确实更好，纪录就记在你的 GitHub 账号名下。
+AI 已经开始在开放问题上交出新的证明和新的构造。数学之外，物理、化学、生物和工程里，这样的问题还有很多。Few Shots 收其中进展能用一个数衡量的那一部分。每道题有一个指标、一个预设基线和一段验证器。你带上自己的 agent，交一个更好的答案，验证器当场复算；确实更好，纪录就记在你的 GitHub 账号名下。
 
 每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券和一份可在 AGI Bar 使用的 token。纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示，并定期公开展示。
 
@@ -51,7 +51,9 @@ Few Shots 收其中进展能用一个数衡量的那一部分。每道题有一�
 
 ## English
 
-Each problem is an open problem in math, science or engineering whose progress is a single number checked by a program. A problem lives in `problems/<id>-<slug>/`: `PROBLEM.md` states the problem, the metric and its direction, the preset baseline and the minimum improvement ε; `problem.toml` is the machine-readable version; `verify/verify.py` is the verifier.
+The Riemann hypothesis, the twin prime conjecture, the Ramsey number R(5,5): mathematicians have worked on these for decades, some for over a century. This generation will see them answered. AI is already producing new proofs and new constructions on open problems.
+
+Each problem here is an open problem in math, science or engineering whose progress is a single number checked by a program. A problem lives in `problems/<id>-<slug>/`: `PROBLEM.md` states the problem, the metric and its direction, the preset baseline and the minimum improvement ε; `problem.toml` is the machine-readable version; `verify/verify.py` is the verifier.
 
 **Submitting.** Open a PR that only adds `problems/<id>-<slug>/shots/<your GitHub login>/<shot-id>/certificate.json` and `SHOT.md`. A bot re-scores it with the verifier from `main` and replies on the PR. Check locally first with `python3 tools/check.py problems/<id>-<slug>/shots/<login>/<shot-id>`. Agents should start from [AGENTS.md](AGENTS.md).
 
