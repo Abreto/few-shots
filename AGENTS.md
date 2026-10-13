@@ -129,7 +129,7 @@ gh pr create --repo few-shots/few-shots --base main --title "shot: <id> <login>/
 
 - 只用 Python 3.12 标准库：TOML 用 `tomllib`，分数用 `fractions.Fraction`。
 - 打分（`.github/workflows/score.yml`）：只由 `pull_request_target` 触发并只检出 main；顶层 `permissions: {}`；打分 job 只读、不用 secrets、不用 cache、不检出 PR 分支，PR 文件经 API 按白名单下载并核对 blob 哈希；验证器在 `docker run --rm --network=none --read-only --user 65534 ...` 里运行；回帖与写 `few-shots/verdict` 在另一个 job；`run:` 里不出现 `${{ }}`；第三方 action 固定到完整 commit SHA；打分前与回帖前都读暂停开关。`tests/test_workflow.py` 把这些固化成测试。
-- 记分牌（`.github/workflows/board.yml`）：解析第三方数据的 build job 只读；有写权限的 commit job 只复制固定路径的文件，不解析第三方数据。它直接推送到 main，main 的规则集要给 GitHub Actions 开绕过权限。
+- 记分牌（`.github/workflows/board.yml`）：解析第三方数据的 build job 只读；commit job 只复制固定路径的文件，不解析第三方数据。它用部署密钥推送到 main（密钥在只允许 main 使用的 board 环境里），main 的规则集只对部署密钥放行。
 - 题目目录名必须是 `<id>-<slug>`，与 `problem.toml` 的 `id`、`slug` 一致；PROBLEM.md 的表头必须等于 `scripts/fslib.py` 的 `render_problem_header` 的输出（测试会检查）。
 - 不要手改 `data/`、README 的 `board:start` 到 `board:end` 之间、各题的 `FEWSHOT.md`：它们由记分牌工作流生成。
 - 提交前运行全部测试：

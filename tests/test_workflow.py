@@ -58,7 +58,9 @@ class CommonWorkflowTest(unittest.TestCase):
             with self.subTest(name):
                 text = read(name)
                 self.assertRegex(text, r"(?m)^permissions: \{\}$")
-                self.assertNotIn("secrets.", text)
+                # 全仓库只有 board.yml 的 commit job 引用一个 secret：推送记分牌用的部署密钥
+                expected = ["${{ secrets.BOARD_DEPLOY_KEY }}"] if name == "board.yml" else []
+                self.assertEqual(re.findall(r"\$\{\{\s*secrets\.[^}]*\}\}", text), expected)
                 self.assertNotIn("actions/cache", text)
                 self.assertNotIn("raw.githubusercontent.com", text)
                 for b in run_blocks(text):
@@ -72,13 +74,13 @@ class CommonWorkflowTest(unittest.TestCase):
                     for call in re.findall(r"python3?\b[^\n]*", b):
                         self.assertIn("python3 -I ", call, call)
 
-    def test_only_board_commit_can_write_contents(self):
-        writers = []
+    def test_no_job_gets_a_writable_contents_token(self):
         for name in ("board.yml", "score.yml", "test.yml"):
-            for m in re.finditer(r"(?m)^\s+contents: write$", read(name)):
-                writers.append(name)
-        self.assertEqual(writers, ["board.yml"])
-        self.assertIn("contents: write", job_perms(read("board.yml"), "commit"))
+            self.assertNotRegex(read(name), r"(?m)^\s+contents: write$", name)
+        commit = job_section(read("board.yml"), "commit")
+        self.assertIn("environment: board", commit)
+        self.assertIn("secrets.BOARD_DEPLOY_KEY", commit)
+        self.assertNotIn("secrets.", job_section(read("board.yml"), "build"))
 
     def test_no_workflow_runs_pr_code(self):
         for name in ("board.yml", "test.yml"):
@@ -147,7 +149,7 @@ class BoardWorkflowTest(unittest.TestCase):
 
     def test_split_permissions(self):
         self.assertEqual(job_perms(self.text, "build"), ["contents: read", "pull-requests: read", "statuses: read"])
-        self.assertEqual(job_perms(self.text, "commit"), ["contents: write"])
+        self.assertEqual(job_perms(self.text, "commit"), ["contents: read"])
         build = job_section(self.text, "build")
         self.assertIn("scripts/build_board.py", build)
         self.assertIn("tools/fewshot.py", build)
@@ -157,7 +159,8 @@ class BoardWorkflowTest(unittest.TestCase):
         self.assertEqual(re.findall(r"python3 -I (\S+)", commit), ["scripts/control.py"])
         for bad in ("build_board", "tools/fewshot", "/shots", "/SHOT.md", "cat ", "jq"):
             self.assertNotIn(bad, commit)
-        self.assertIn("push origin HEAD:main", commit)
+        self.assertIn("git push git@github.com:few-shots/few-shots.git HEAD:main", commit)
+        self.assertIn("StrictHostKeyChecking=yes", commit)
 
     def test_both_jobs_check_the_pause_switch_first(self):
         for job in ("build", "commit"):
@@ -178,7 +181,7 @@ class BoardWorkflowTest(unittest.TestCase):
     def test_triggers(self):
         on = re.search(r"^on:\n(.*?)^\S", self.text, re.S | re.M).group(1)
         self.assertIn("schedule:", on)
-        self.assertIn('paths: ["problems/**"]', on)
+        self.assertIn('paths: ["problems/**", "!problems/*/FEWSHOT.md"]', on)
         self.assertIn("workflow_dispatch:", on)
 
     def test_commit_copies_fixed_paths(self):

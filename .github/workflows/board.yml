@@ -1,10 +1,11 @@
 # 记分牌：重建 README 记分牌区、data/board.json、data/cache.json 和每道题的 FEWSHOT.md，内容有变化才提交到 main。
 # - 触发：每 15 分钟；main 上 problems/ 有变化时（例如 shot 被合并）；手动。
-#   GITHUB_TOKEN 推送的提交不会再触发工作流，所以不会循环。
+#   本工作流的提交只改 FEWSHOT.md 和记分牌文件，paths 排除了 FEWSHOT.md，所以不会循环。
 # - build job 只读（contents / pull-requests / statuses: read）：解析第三方的 SHOT.md，
 #   通过 GitHub REST API GET 核对合并 PR 上的 few-shots/verdict，产出上述文件作为产物。
-# - commit job 才有 contents: write：只把固定路径的文件从产物复制进 checkout 并提交，不解析任何第三方数据。
-#   它推送到 main 需要规则集里给 GitHub Actions 的绕过权限（见 AGENTS.md「维护者须知」）。
+# - commit job 只把固定路径的文件从产物复制进 checkout 并提交，不解析任何第三方数据。
+#   它用部署密钥推送到 main（规则集只对这把部署密钥放行）。密钥存在 board 环境里，
+#   board 环境只允许 main 分支使用，全仓库只有这个 job 引用它。
 # - 两个 job 都检出触发时的同一个提交；main 在此期间前进时推送会被拒绝，下一次运行再更新。
 # - 两个 job 都先读暂停开关（scripts/control.py，GitHub API 读 main 上的 control.toml）；暂停或读不到就不更新。
 # - 第三方 action 固定到完整 commit SHA；run: 里没有表达式插值。
@@ -15,7 +16,7 @@ on:
     - cron: "*/15 * * * *"
   push:
     branches: [main]
-    paths: ["problems/**"]
+    paths: ["problems/**", "!problems/*/FEWSHOT.md"]
   workflow_dispatch:
 
 permissions: {}
@@ -83,8 +84,9 @@ jobs:
     if: needs.build.outputs.paused == 'false'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    environment: board
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: 检出（与 build job 同一个提交）
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -108,7 +110,7 @@ jobs:
       - name: 有变化才提交（只复制固定路径的文件，不读取其内容）
         if: steps.control.outputs.paused == 'false'
         env:
-          GH_TOKEN: ${{ github.token }}
+          BOARD_DEPLOY_KEY: ${{ secrets.BOARD_DEPLOY_KEY }}
         run: |
           set -euo pipefail
           src="$RUNNER_TEMP/board-out"
@@ -135,5 +137,11 @@ jobs:
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -m "board: 更新记分牌与 FEWSHOT.md"
-          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
-          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $auth" push origin HEAD:main
+          umask 077
+          key="$RUNNER_TEMP/deploy_key"
+          known="$RUNNER_TEMP/known_hosts"
+          printf '%s\n' "$BOARD_DEPLOY_KEY" > "$key"
+          printf '%s\n' 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl' > "$known"
+          GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$known -o StrictHostKeyChecking=yes" \
+            git push git@github.com:few-shots/few-shots.git HEAD:main
+          rm -f "$key"
