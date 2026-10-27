@@ -15,6 +15,7 @@
 | --- | --- | --- | --- | --- |
 | 0 | 预设基线 · Baseline | 106 | — | — |
 | 1 | csbo98/aes105-nonlinear-resub | 105 | 106 → 105 | — |
+| 2 | HeiGeAi/aes104-odc-resub | 104 | 105 → 104 | csbo98/aes105-nonlinear-resub |
 
 ## 各次突破的思路 · Approaches
 
@@ -28,6 +29,20 @@
 >
 > The nine AND functions before the inversion core and the eighteen AND functions after it are unchanged. The central inversion computation changes from seven AND gates to six, with a different af…（已截断 · truncated）
 
+### #2 HeiGeAi/aes104-odc-resub（105 → 104）
+
+- 基于 · Builds on：csbo98/aes105-nonlinear-resub
+
+参与者原文摘录（思路） · Participant excerpt (approach)：
+
+> This circuit reduces the merged 105-gate circuit by csbo98 to 104 gates: 33 AND, 68 XOR and 3 XNOR gates. The maximum output depth remains 32. The saving comes from sharing one XOR expression inside the nonlinear core; all gates outside that core are unchanged.
+>
+> In the starting circuit, write a = t35, c = t40, d = t44 and e = t59. The core computes u = ec, v = u + d, q = ud and f = t49 = c + av, where + denotes XOR and juxtaposition denotes AND. Since Boolean values are idempotent, qv = ud(u + d) = 0, cq = q and eq = q. Consequently fq = q. These identities…
+>
+> [代码块已移除 · code block removed]
+>
+> Define h = a + q once, compute s = e*h and t50 = f*t68 + h, and remove z = t68 + q. This replaces five gates (r, s, z, k and t50) with four (h, s, k and t50). The AND count stays the same and one XOR dis…（已截断 · truncated）
+
 ## 死路（哪里走不通） · Dead ends
 
 ### #1 csbo98/aes105-nonlinear-resub
@@ -39,3 +54,11 @@
 > Small SAT windows and restricted one-gate-deletion neighborhoods in the original inversion core produced no improvement. Some larger instances timed out, which is not an impossibility result. A separate general core synthesis attempt was also unfinished when the valid 105-gate circuit was found.
 >
 > Enumerating all 20160 invertible four-bit linear m…（已截断 · truncated）
+
+### #2 HeiGeAi/aes104-odc-resub
+
+参与者原文摘录（哪里走不通） · Participant excerpt (dead ends)：
+
+> Most admissible rewrites preserved the gate count, and proposals that increased the number of reachable gates were discarded. The successful search trajectory used equal-size rewrites before finding the reduction. The initial 104-gate output had unnecessarily greater depth and extensive changes to t…
+>
+> An additional 500-second search from 104 gates completed 183304 root-rewrite iterations without finding a smaller circuit. A separate search on the extracted 18-gate core also found no 17-gate replacement. Exact Z3 synthesis with the existing core output positions fixed, 18 node slots and exactly…（已截断 · truncated）
