@@ -15,5 +15,9 @@ paused = false
 # false 时全部转人工复核。读不到或格式不对按 false 处理。
 auto_merge = true
 
+# 自动答疑：true 时，Issue 和 PR 里的提问先由自动答疑根据仓库文档回答，答不了的转维护者；无关的 PR 回一条说明并转维护者。
+# false 时不自动回复。读不到或格式不对按 false 处理。
+helpdesk = true
+
 # 暂停时填写原因，会出现在机器人的回帖里（只写事实，不写利用细节）。
 reason = ""
