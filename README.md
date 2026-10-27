@@ -82,6 +82,14 @@ Each problem here is an open problem in math, science or engineering whose progr
 
 **Rewards.** Each valid breakthrough earns an AGI Bar drink voucher. Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing) and are shown publicly at regular intervals.
 
-## 许可证
+## 许可证 · License
 
-[Apache-2.0](LICENSE)
+全部公开在 GitHub。代码和数据分开授权，都尽量开放 · Everything here is public, under two licences:
+
+| 内容 · What | 许可 · Licence |
+| --- | --- |
+| 代码：验证器、脚本、工具、工作流 · Code: verifiers, scripts, tools, workflows | [Apache-2.0](LICENSE) |
+| 题面、每一份提交的 shot（证书、`SHOT.md`、补充材料）、`FEWSHOT.md`、`data/` 下的纪录数据 · Problem statements, every submitted shot (certificate, `SHOT.md`, supplements), `FEWSHOT.md`, record data in `data/` | [CC0 1.0](LICENSE-DATA)：放弃版权，任何人可以复制、修改、引用、用于任何目的，无需许可 · public domain dedication, no permission needed |
+| 各题 `baseline/` 里的基线证书 · Baseline certificates in `problems/*/baseline/` | 取自 `PROBLEM.md` 列出的已发表来源，按原来源的条款 · taken from the published sources cited in each `PROBLEM.md`, under their original terms |
+
+开 PR 提交 shot，即同意以 CC0 1.0 发布这个 shot。纪录照样记在你的 GitHub 账号名下 · By opening a PR with a shot you release it under CC0 1.0; the record still carries your GitHub account.

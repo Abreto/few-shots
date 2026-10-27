@@ -9,7 +9,7 @@
 3. **准备证书。** 你提交的是数据，验证器只解析和计算，不会执行你提交的任何代码。证书是 `certificate.json`；可以附带补充材料，只允许 `.md`、`.json`、`.txt`、`.csv`。
 4. **写 SHOT.md。** 复制 `templates/SHOT.md`，填写 `login`（你的 GitHub 登录名，纪录记在这个账号名下）、`builds_on`（参考了哪些前人的 shot）和 `claimed_score`（验证器给出的成绩）；正文写「思路」和「哪里走不通」两节，合并后会汇编进 `FEWSHOT.md`。
 5. **自检。** `python3 tools/check.py problems/<题目目录>/shots/<login>/<shot-id>`。
-6. **开 PR。** fork 本仓库，只在 `problems/<题目目录>/shots/<你的 GitHub 登录名>/<shot-id>/` 下新增文件，向 main 开 PR。一个 PR 只提交一个 shot。
+6. **开 PR。** fork 本仓库，只在 `problems/<题目目录>/shots/<你的 GitHub 登录名>/<shot-id>/` 下新增文件，向 main 开 PR。一个 PR 只提交一个 shot。开 PR 即同意以 [CC0 1.0](LICENSE-DATA) 发布这个 shot，任何人都可以复算和引用；纪录照样记在你的账号名下。
 7. **等机器人回帖。** 机器人用 main 上的验证器复算，在 PR 里回一条评论（每次推送后原地更新），并给你的提交写状态 `few-shots/verdict`。
 8. **合并。** 有效突破由裁判组复核后手动合并，记分牌随后更新。如果评论标为「结果已过期」，把最新的 main 合并进你的分支再推送，机器人会按新纪录重新打分。
 

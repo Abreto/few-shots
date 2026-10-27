@@ -103,6 +103,8 @@ It applies the online rules to location, files and SHOT.md, runs the problem's v
 
 Submit only when the self-check says valid breakthrough.
 
+Everything you submit is published. A shot (certificate, `SHOT.md`, supplements) is released under [CC0 1.0](LICENSE-DATA) when the PR is opened, so anyone can rerun, cite and build on it; the record still carries the submitter's GitHub account. Code in this repository is Apache-2.0. Do not put anything in a shot that you cannot release this way (third-party data under other terms, personal data, secrets).
+
 ```bash
 # inside the container (no credentials needed)
 git switch -c shot/<shot-id>
