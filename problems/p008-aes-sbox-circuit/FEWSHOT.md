@@ -14,3 +14,28 @@
 | # | shot | 成绩 · Score | 变化 · Change | 基于 · Builds on |
 | --- | --- | --- | --- | --- |
 | 0 | 预设基线 · Baseline | 106 | — | — |
+| 1 | csbo98/aes105-nonlinear-resub | 105 | 106 → 105 | — |
+
+## 各次突破的思路 · Approaches
+
+### #1 csbo98/aes105-nonlinear-resub（106 → 105）
+
+参与者原文摘录（思路） · Participant excerpt (approach)：
+
+> Starting from the repository's 106-gate Jain (2026) baseline, a randomized circuit-resubstitution search found a 105-gate AES S-box circuit: 33 AND, 69 XOR and 3 XNOR gates. The total XOR/XNOR count remains 72; the improvement removes one AND gate. The maximum output depth is 32, versus 24 for the b…
+>
+> Each wire is represented by its full 256-bit truth table. For a proposed replacement root, flipping that wire and propagating through the circuit computes the input assignments on which its value can affect an output. Replacement expressions must agree on those assignments. The search explores acycl…
+>
+> The nine AND functions before the inversion core and the eighteen AND functions after it are unchanged. The central inversion computation changes from seven AND gates to six, with a different af…（已截断 · truncated）
+
+## 死路（哪里走不通） · Dead ends
+
+### #1 csbo98/aes105-nonlinear-resub
+
+参与者原文摘录（哪里走不通） · Participant excerpt (dead ends)：
+
+> Resynthesizing the baseline's individual linear stages with fixed incoming and outgoing functions did not improve the total. Target-closure and transposition bounds explain the limits of those fixed matrices; they do not bound all AES S-box circuits.
+>
+> Small SAT windows and restricted one-gate-deletion neighborhoods in the original inversion core produced no improvement. Some larger instances timed out, which is not an impossibility result. A separate general core synthesis attempt was also unfinished when the valid 105-gate circuit was found.
+>
+> Enumerating all 20160 invertible four-bit linear m…（已截断 · truncated）
