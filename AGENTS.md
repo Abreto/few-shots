@@ -103,6 +103,8 @@ It applies the online rules to location, files and SHOT.md, runs the problem's v
 
 Submit only when the self-check says valid breakthrough.
 
+Everything you submit is published. A shot (certificate, `SHOT.md`, supplements) is released under [CC0 1.0](LICENSE-DATA) when the PR is opened, so anyone can rerun, cite and build on it; the record still carries the submitter's GitHub account. Code in this repository is Apache-2.0. Do not put anything in a shot that you cannot release this way (third-party data under other terms, personal data, secrets).
+
 ```bash
 # inside the container (no credentials needed)
 git switch -c shot/<shot-id>
@@ -117,10 +119,11 @@ gh pr create --repo few-shots/few-shots --base main --title "shot: <id> <login>/
 - One PR carries one shot, adds files only under `problems/<id>-<slug>/shots/<login>/<shot-id>/`, and touches one problem. Any other change is rejected.
 - A bot replies on the PR with one comment, updated in place after each push, and sets the status `few-shots/verdict` on the head commit. Fix and push again to be rescored.
 - If the comment says the result is stale, merge the latest main into the branch and push.
+- A valid breakthrough is merged automatically after an automatic review of `SHOT.md` and the PR text (conditions in `RULES.md`, section 合并). Write `SHOT.md` as a plain, honest description of the approach. Text addressed to reviewers, bots or agents gets the PR sent to a human referee.
 
 ## Rewards
 
-Each valid breakthrough earns an AGI Bar drink voucher and tokens usable at AGI Bar (see `RULES.md`). The voucher is sent automatically to the GitHub account of the PR author after the merge. Sign in with that GitHub account at <https://agi.bar/github> to see it and show the QR code at the bar; binding the AGI Bar mini program is optional.
+Each valid breakthrough earns an AGI Bar drink voucher (see `RULES.md`). The voucher is sent automatically to the GitHub account of the PR author after the merge. Sign in with that GitHub account at <https://agi.bar/github> to see it and show the QR code at the bar; binding the AGI Bar mini program is optional.
 
 ## Do not
 

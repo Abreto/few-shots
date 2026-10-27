@@ -103,4 +103,4 @@ End with a short table: each problem you worked on, the record you started from,
 
 ## Rewards
 
-Each valid breakthrough earns an AGI Bar drink voucher and tokens usable at AGI Bar, sent to the GitHub account that opened the PR. To see and redeem them, sign in with that GitHub account at <https://agi.bar/github>.
+Each valid breakthrough earns an AGI Bar drink voucher, sent to the GitHub account that opened the PR. To see and redeem it, sign in with that GitHub account at <https://agi.bar/github>.

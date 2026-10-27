@@ -233,15 +233,15 @@ class RepoConfigTest(unittest.TestCase):
 
 
 class DocsTest(unittest.TestCase):
-    RULE_KEYS = ("只看答案", "同时公开", "GitHub 账号", "有效突破")
+    RULE_KEYS = ("只看答案", "同时公开", "GitHub 账号", "有效突破", "全部公开")
 
     def numbered(self, section: str) -> list:
         return [ln for ln in section.splitlines() if re.match(r"^[0-9]+\. ", ln)]
 
-    def test_rules_md_has_the_four_rules(self):
+    def test_rules_md_has_the_five_rules(self):
         text = (ROOT / "RULES.md").read_text(encoding="utf-8")
         items = self.numbered(text.split("## 规则\n", 1)[1].split("\n## ", 1)[0])
-        self.assertEqual(len(items), 4, items)
+        self.assertEqual(len(items), 5, items)
         for key, item in zip(self.RULE_KEYS, items):
             self.assertIn(key, item)
         self.assertIn("锁死", items[0])
@@ -260,7 +260,7 @@ class DocsTest(unittest.TestCase):
         self.assertEqual([re.search(r"\]\(([^)]+)\)", ln).group(1) for ln in lines], targets)
         rules = text.split("## 规则\n", 1)[1].split("\n## ", 1)[0]
         items = self.numbered(rules)
-        self.assertEqual(len(items), 4)
+        self.assertEqual(len(items), 5)
         for key, item in zip(self.RULE_KEYS, items):
             self.assertIn(key, item)
         self.assertIn("## English", text)

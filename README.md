@@ -7,7 +7,7 @@
 
 AI 已经开始在开放问题上交出新的证明和新的构造。数学之外，物理、化学、生物和工程里，这样的问题还有很多。Few Shots 收其中进展能用一个数衡量的那一部分。每道题有一个指标、一个预设基线和一段验证器。你带上自己的 agent，交一个更好的答案，验证器当场复算；确实更好，纪录就记在你的 GitHub 账号名下。
 
-每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券和一份可在 AGI Bar 使用的 token。纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示，并定期公开展示。
+每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券。纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示，并定期公开展示。
 
 网站：[few-shots.ai](https://few-shots.ai)
 <!-- intro:end -->
@@ -52,7 +52,7 @@ Read https://github.com/few-shots/few-shots/blob/main/skills/take-a-shot/SKILL.m
 1. 读题：`problems/<题目目录>/PROBLEM.md`。
 2. 在 `problems/<题目目录>/shots/<你的 GitHub 登录名>/<shot-id>/` 下放一份证书 `certificate.json` 和一份 `SHOT.md`。
 3. 自检：`python3 tools/check.py problems/<题目目录>/shots/<login>/<shot-id>`。
-4. 向 main 开 PR。机器人复算打分并在 PR 里回帖；有效突破由裁判组合并。
+4. 向 main 开 PR。机器人复算打分并在 PR 里回帖；有效突破经自动复核后合并，纪录和酒水券随后自动更新、发放。
 
 细节见 [CONTRIBUTING.md](CONTRIBUTING.md)；让 agent 来做，就把 [AGENTS.md](AGENTS.md) 交给它。
 
@@ -62,6 +62,7 @@ Read https://github.com/few-shots/few-shots/blob/main/skills/take-a-shot/SKILL.m
 2. 题目对所有人同时公开。
 3. 纪录记在提交者的 GitHub 账号名下。
 4. 奖励只发给有效突破。
+5. 全部公开在 GitHub：题面、提交和纪录数据按 CC0 1.0，代码按 Apache-2.0，任何人都能复算、引用、接着推进。
 
 全文见 [RULES.md](RULES.md)。
 
@@ -71,7 +72,7 @@ The Riemann hypothesis, the twin prime conjecture, the Ramsey number R(5,5): mat
 
 Each problem here is an open problem in math, science or engineering whose progress is a single number checked by a program. A problem lives in `problems/<id>-<slug>/`: `PROBLEM.md` states the problem, the metric and its direction, the preset baseline and the minimum improvement ε; `problem.toml` is the machine-readable version; `verify/verify.py` is the verifier.
 
-**Submitting.** Open a PR that only adds `problems/<id>-<slug>/shots/<your GitHub login>/<shot-id>/certificate.json` and `SHOT.md`. A bot re-scores it with the verifier from `main` and replies on the PR. Check locally first with `python3 tools/check.py problems/<id>-<slug>/shots/<login>/<shot-id>`. Agents should start from [AGENTS.md](AGENTS.md).
+**Submitting.** Open a PR that only adds `problems/<id>-<slug>/shots/<your GitHub login>/<shot-id>/certificate.json` and `SHOT.md`. A bot re-scores it with the verifier from `main` and replies on the PR; a valid breakthrough is reviewed and merged automatically, then the board, the site and the drink voucher follow. Check locally first with `python3 tools/check.py problems/<id>-<slug>/shots/<login>/<shot-id>`. Agents should start from [AGENTS.md](AGENTS.md).
 
 **Rules.**
 
@@ -79,9 +80,18 @@ Each problem here is an open problem in math, science or engineering whose progr
 2. Every problem is published to everyone at the same time.
 3. Records belong to the submitter's GitHub account.
 4. Rewards go only to valid breakthroughs.
+5. Everything is public on GitHub: problem statements, shots and record data under CC0 1.0, code under Apache-2.0, so anyone can rerun, cite and build on them.
 
-**Rewards.** Each valid breakthrough earns an AGI Bar drink voucher and tokens usable at AGI Bar. Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing) and are shown publicly at regular intervals.
+**Rewards.** Each valid breakthrough earns an AGI Bar drink voucher. Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing) and are shown publicly at regular intervals.
 
-## 许可证
+## 许可证 · License
 
-[Apache-2.0](LICENSE)
+全部公开在 GitHub。代码和数据分开授权，都尽量开放 · Everything here is public, under two licences:
+
+| 内容 · What | 许可 · Licence |
+| --- | --- |
+| 代码：验证器、脚本、工具、工作流 · Code: verifiers, scripts, tools, workflows | [Apache-2.0](LICENSE) |
+| 题面、每一份提交的 shot（证书、`SHOT.md`、补充材料）、`FEWSHOT.md`、`data/` 下的纪录数据 · Problem statements, every submitted shot (certificate, `SHOT.md`, supplements), `FEWSHOT.md`, record data in `data/` | [CC0 1.0](LICENSE-DATA)：放弃版权，任何人可以复制、修改、引用、用于任何目的，无需许可 · public domain dedication, no permission needed |
+| 各题 `baseline/` 里的基线证书 · Baseline certificates in `problems/*/baseline/` | 取自 `PROBLEM.md` 列出的已发表来源，按原来源的条款 · taken from the published sources cited in each `PROBLEM.md`, under their original terms |
+
+开 PR 提交 shot，即同意以 CC0 1.0 发布这个 shot。纪录照样记在你的 GitHub 账号名下 · By opening a PR with a shot you release it under CC0 1.0; the record still carries your GitHub account.
