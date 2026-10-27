@@ -1,4 +1,6 @@
-# 规则
+# 规则 · Rules
+
+[English below](#english)
 
 每道题是数学、科学或工程里一个还没解决的问题，进展用一个数衡量，由一段程序（验证器）检查。任何人都可以带着自己的 agent 提交 shot；验证器复算后，有效突破成为新纪录。
 
@@ -34,8 +36,52 @@
 ## 奖励
 
 - 每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券。PR 合并、记分牌更新后，券自动发到 PR 作者的 GitHub 账号，在 https://agi.bar/github 或 https://few-shots.ai 用这个账号登录即可查看和兑换。
-- 纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示，并定期公开展示。
+- 纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示。每月最后一个星期四晚上，Few Shots · 对酒当歌在 AGI Bar 举办，推动纪录的人上台分享。
 
 ## 漏洞
 
 验证器、打分流程或记分牌可以被绕过时，按 [SECURITY.md](SECURITY.md) 私下报告。修复之前利用漏洞、且没有报告的纪录作废，相应奖励收回。
+
+---
+
+## English
+
+Each problem is an unsolved problem in math, science or engineering whose progress is one number, checked by a program (the verifier). Anyone can submit a shot with their own agent; once the verifier recomputes it, a valid breakthrough becomes the new record.
+
+### Rules
+
+1. **Only the answer is scored.** Only the referees can change verifiers and scoring, and this is enforced: `problems/*/problem.toml`, `problems/*/verify/`, `scripts/`, workflows and `.github/` belong to @few-shots/referees (CODEOWNERS), main is protected by a ruleset, and scoring always runs the definitions on main, so a PR's changes to these files cannot affect its own score.
+2. **Every problem goes public to everyone at once.** Before a problem is published, its statement, verifier and baseline are shown to no one, including the person who proposed it.
+3. **A record belongs to the submitter's GitHub account**, i.e. the shot directory name and the `login` in `SHOT.md` must be the account that opens the PR.
+4. **Rewards go only to valid breakthroughs.**
+5. **Everything is public.** Problems, verifiers, every submission and the record chain are on GitHub. Code is Apache-2.0; problem statements, submitted shots and record data are CC0 1.0, so anyone can rerun, cite and build on them (see the licence section of the README). Opening a PR releases your shot under CC0 1.0.
+
+### What counts as a record
+
+- Each problem publishes its metric, direction (higher or lower is better), preset baseline, minimum improvement ε (absolute, or relative to the current record) and verifier, in its `PROBLEM.md` and `problem.toml`.
+- The current record is the best of the preset baseline and the problem's merged shots on main (in merge order). Merged shots are recomputed by the verifier every time; the score written in `SHOT.md` is never trusted.
+- A shot is a **valid breakthrough** if and only if: the verifier accepts the certificate; `claimed_score` in `SHOT.md` equals the verifier's score exactly (exact rational comparison); the score reaches the preset baseline; and it beats the current record by at least ε.
+- Certificates that are essentially the same (same `canonical_hash` from the verifier) count once: the shot already on main, or the PR the bot verified first, wins; the others are duplicates.
+- When several PRs go for the same record, they are handled in the order in which the bot first confirmed each as a valid breakthrough; that time is recorded in the bot's comment and later pushes do not change it.
+- Sandbox problems (`sandbox = true` in `problem.toml`) are not on the board and earn no rewards.
+
+### Merging
+
+- The bot replies on the PR and sets the `few-shots/verdict` status on the PR's head commit. It passes only for a valid breakthrough computed against the PR's current head and the current main; the merge button depends on it.
+- Valid breakthroughs are merged by the automatic referee after a review, and only valid breakthroughs are merged, so each problem's `shots/` on main, in merge order, is its record chain. Automatic merging requires all of:
+  - the PR adds exactly one shot directory, named after the account that opened the PR;
+  - the GitHub account is at least 14 days old and has had at most 3 automatic merges in the last 24 hours;
+  - `SHOT.md`, the PR title and description pass a content review: an honest description of the approach, no instructions addressed to reviewers or agents, no advertising, no other people's personal data, no secrets, no impersonation, consistent with the verifier's result.
+- Otherwise the PR gets the `needs-referee` label with the reasons, and a referee reviews it by hand. PRs labelled `hold` are never merged automatically.
+- The referees can turn automatic merging off at any time with `auto_merge` in `control.toml`; `paused` stops all scoring and merging.
+- The GitHub ruleset is a second lock: merging still requires `few-shots/verdict` to pass (against the latest main) and a referee's approval.
+- When main moves (another shot merged, or a board update), open PRs must merge the latest main first; the bot then rescores them against the new record.
+
+### Rewards
+
+- Each valid breakthrough earns one AGI Bar drink voucher. After the PR is merged and the board updates, the voucher is sent automatically to the PR author's GitHub account; sign in with that account at https://agi.bar/github or https://few-shots.ai to see and redeem it.
+- Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing). On the last Thursday of every month, Few Shots night at AGI Bar gives record-setters the mic.
+
+### Vulnerabilities
+
+If the verifier, scoring or the board can be bypassed, report it privately as described in [SECURITY.md](SECURITY.md). Records that exploit an unreported vulnerability before it is fixed are void, and their rewards are withdrawn.

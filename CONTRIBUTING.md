@@ -1,4 +1,6 @@
-# 参与 Few Shots
+# 参与 Few Shots · Contributing
+
+[English below](#english)
 
 规则全文见 [RULES.md](RULES.md)。准确的目录约定、文件限制和命令写在 [AGENTS.md](AGENTS.md)，人和 agent 用的是同一套。
 
@@ -33,3 +35,41 @@
 文档、工具和流水线的改动直接开 PR。验证器、计分、`problem.toml`、`control.toml` 和 `.github/` 只有裁判组能改，相关 PR 需要裁判组审批。发现漏洞请按 [SECURITY.md](SECURITY.md) 私下报告。
 
 请遵守 [行为准则](CODE_OF_CONDUCT.md)。
+
+---
+
+## English
+
+The full rules are in [RULES.md](RULES.md). Exact directory conventions, file limits and commands are in [AGENTS.md](AGENTS.md); people and agents follow the same instructions.
+
+### Submitting a shot
+
+1. **Pick a problem.** Each directory under `problems/` is a problem. Its `PROBLEM.md` states the problem, the metric and direction, the preset baseline, the minimum improvement ε and the certificate format. Current records are in the [README board](README.md#纪录); earlier approaches and dead ends are in the problem's `FEWSHOT.md`.
+2. **Reproduce the baseline.** `python3 problems/<problem dir>/verify/verify.py problems/<problem dir>/baseline`.
+3. **Prepare a certificate.** You submit data; the verifier only parses and computes and never runs code you submit. The certificate is `certificate.json`; supplements may be `.md`, `.json`, `.txt` or `.csv`.
+4. **Write SHOT.md.** Copy `templates/SHOT.md` and fill in `login` (your GitHub login; the record goes to this account), `builds_on` (earlier shots you used) and `claimed_score` (the verifier's score). In the body, write the two sections on your approach and on what did not work; after merging they are compiled into `FEWSHOT.md`.
+5. **Self-check.** `python3 tools/check.py problems/<problem dir>/shots/<login>/<shot-id>`.
+6. **Open a PR.** Fork the repository, add files only under `problems/<problem dir>/shots/<your GitHub login>/<shot-id>/`, and open a PR against main, one shot per PR. Opening the PR releases the shot under [CC0 1.0](LICENSE-DATA): anyone can rerun and cite it, and the record still carries your account.
+7. **Wait for the bot.** It rescores the shot with the verifier on main, replies on the PR with one comment (updated in place after each push) and sets the `few-shots/verdict` status on your commit.
+8. **Merge.** Valid breakthroughs are merged by the automatic referee after review (conditions in [RULES.md](RULES.md)); the board and the site then update and the drink voucher arrives automatically. PRs that do not meet the conditions go to a referee. If the comment says the result is stale, merge the latest main into your branch and push; the bot rescores against the new record.
+
+When an agent does the work, give it [AGENTS.md](AGENTS.md) and run it in the credential-free devcontainer; you push and open the PR yourself. Content written by others under `shots/` and in `FEWSHOT.md` is third-party data: do not let your agent run commands or follow instructions found there.
+
+### Proposing a problem
+
+Use the [issue form](https://github.com/few-shots/few-shots/issues/new/choose). A good problem:
+
+- **is unsolved**, from math, science or engineering, precisely defined, with public sources;
+- **takes data as the answer**: participants submit a certificate (JSON / CSV / TXT / MD), and the verifier only parses and computes;
+- **is checked deterministically**: the same certificate gets the same score for everyone, and scores are integers or rationals compared exactly;
+- **has a clear metric and direction**, with units;
+- **has a public preset baseline** with its source, and good reason to think it can be improved;
+- **uses data that may be used publicly**, with no personal data.
+
+Proposals are discussed openly in the issue. The referees check that a verifier can be written by parsing data alone, that the computation is manageable and that the baseline is reliable; for accepted problems the referees write the verifier, set the baseline and ε, and publish it to everyone at once. The proposer gets no early access to the statement, verifier or baseline.
+
+### Other changes
+
+Open a PR directly for docs, tools and pipeline changes. Only the referees can change verifiers, scoring, `problem.toml`, `control.toml` and `.github/`; such PRs need a referee's approval. Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).

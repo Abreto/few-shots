@@ -1,6 +1,6 @@
-name: 提一道题
-description: 数学、科学或工程里还没解决的问题，进展是一个由程序检查的数
-title: "[提题] "
+name: 提一道题 · Propose a problem
+description: 数学、科学或工程里还没解决的问题，进展是一个由程序检查的数 · An unsolved problem in math, science or engineering whose progress is one number checked by a program
+title: "[提题 · Proposal] "
 labels: ["proposal"]
 body:
   - type: markdown
@@ -12,75 +12,81 @@ body:
         - 只收证书型题：参与者提交的是数据（JSON / CSV / TXT / MD），验证器只解析和计算，不运行参与者的代码。
         - 题目如被采用，会对所有人同时公开，提题人也不会提前拿到题面、验证器或基线。
 
+        What makes a good problem: see "Proposing a problem" in CONTRIBUTING.md. Reminders:
+
+        - Issues are public. Do not post unpublished data, personal data or any credentials.
+        - Certificate problems only: participants submit data (JSON / CSV / TXT / MD); the verifier only parses and computes and never runs participants' code.
+        - If accepted, the problem is published to everyone at once; the proposer gets no early access to the statement, verifier or baseline.
+
   - type: textarea
     id: problem
     attributes:
-      label: 问题
-      description: 用一两段话说清楚要做成什么。尽量给出精确定义和公开出处。
+      label: 问题 · Problem
+      description: 用一两段话说清楚要做成什么。尽量给出精确定义和公开出处。 · One or two paragraphs on what is to be achieved, with a precise definition and public sources.
     validations:
       required: true
 
   - type: textarea
     id: why
     attributes:
-      label: 为什么重要
-      description: 这个问题从哪里来？再进一步意味着什么？谁会在意？
+      label: 为什么重要 · Why it matters
+      description: 这个问题从哪里来？再进一步意味着什么？谁会在意？ · Where does it come from, what would one more step mean, and who cares?
     validations:
       required: true
 
   - type: textarea
     id: metric
     attributes:
-      label: 进度指标与方向
-      description: 指标是什么、单位是什么、越大越好还是越小越好；参与者提交的证书是什么数据。
+      label: 进度指标与方向 · Metric and direction
+      description: 指标是什么、单位是什么、越大越好还是越小越好；参与者提交的证书是什么数据。 · The metric, its unit, whether higher or lower is better, and what data the certificate holds.
       placeholder: |
-        指标：
-        单位：
-        方向：越大越好 / 越小越好
-        证书：
+        指标 · Metric:
+        单位 · Unit:
+        方向 · Direction: 越大越好 higher / 越小越好 lower
+        证书 · Certificate:
     validations:
       required: true
 
   - type: textarea
     id: verifier
     attributes:
-      label: 验证器思路
-      description: 验证器拿到证书后，怎样只靠解析和计算判断它合格并算出分数？大致需要多少计算量？不能依赖运行参与者的代码。
+      label: 验证器思路 · Verifier
+      description: 验证器拿到证书后，怎样只靠解析和计算判断它合格并算出分数？大致需要多少计算量？不能依赖运行参与者的代码。 · How can a verifier check the certificate and compute the score by parsing and computing alone, without running participants' code, and roughly how much computation does it need?
     validations:
       required: true
 
   - type: textarea
     id: baseline
     attributes:
-      label: 预设基线
-      description: 目前公开已知的最好结果，以及出处（论文、数据集、网页链接）。
+      label: 预设基线 · Baseline
+      description: 目前公开已知的最好结果，以及出处（论文、数据集、网页链接）。 · The best publicly known result and its source (paper, dataset, link).
     validations:
       required: true
 
   - type: textarea
     id: headroom
     attributes:
-      label: 为什么还有余量
-      description: 为什么认为目前最好的结果还能改进？已知的上界或下界、理论极限，以及你建议的目标值。
+      label: 为什么还有余量 · Headroom
+      description: "为什么认为目前最好的结果还能改进？已知的上界或下界、理论极限，以及你建议的目标值。 · Why the best result can still be improved: known bounds, theoretical limits, and a suggested target."
     validations:
       required: true
 
   - type: textarea
     id: data
     attributes:
-      label: 数据与许可
-      description: 题目和验证器需要的数据、资料从哪里来，许可是什么。题目不应涉及个人信息。
+      label: 数据与许可 · Data and licence
+      description: 题目和验证器需要的数据、资料从哪里来，许可是什么。题目不应涉及个人信息。 · Where the data for the problem and verifier come from and under which licence. No personal data.
     validations:
       required: true
 
   - type: checkboxes
     id: confirm
     attributes:
-      label: 确认
+      label: 确认 · Confirm
       options:
-        - label: 参与者只需提交数据（证书），验证器不需要运行参与者的代码。
+        - label: 参与者只需提交数据（证书），验证器不需要运行参与者的代码。 · Participants submit only data (a certificate); the verifier never runs their code.
           required: true
-        - label: 我有权公开以上内容，所列数据的许可允许公开使用。
+        - label: 我有权公开以上内容，所列数据的许可允许公开使用。 · I may publish the above, and the data's licence allows public use.
           required: true
-        - label: 我理解题目如被采用，会对所有人同时公开，提题人也不会提前拿到题面、验证器或基线。
+        - label: 我理解题目如被采用，会对所有人同时公开，提题人也不会提前拿到题面、验证器或基线。 · I understand that an accepted problem is published to everyone at once, with no early access for the proposer.
           required: true

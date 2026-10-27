@@ -245,7 +245,11 @@ class DocsTest(unittest.TestCase):
         for key, item in zip(self.RULE_KEYS, items):
             self.assertIn(key, item)
         self.assertIn("锁死", items[0])
-        self.assertTrue(text.rstrip().split("\n## ")[-1].startswith("漏洞"))   # 漏洞报告在最后一节
+        zh = text.split("\n## English", 1)[0]
+        self.assertTrue(zh.rstrip().split("\n## ")[-1].startswith("漏洞"))   # 中文部分里漏洞报告在最后一节
+        en = text.split("\n## English", 1)[1]                                # 英文部分同样有五条规则，漏洞在最后
+        self.assertEqual(len(self.numbered(en.split("### Rules\n", 1)[1].split("\n### ", 1)[0])), 5)
+        self.assertTrue(en.rstrip().split("\n### ")[-1].startswith("Vulnerabilities"))
         self.assertIn("SECURITY.md", text)
 
     def test_readme_structure(self):

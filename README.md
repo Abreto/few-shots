@@ -3,11 +3,11 @@
 **A few shots at the never-done.**
 
 <!-- intro:start -->
-黎曼猜想、孪生素数猜想、拉姆齐数 R(5,5)。这些问题，数学家研究了几十年到一百多年。这一代人，会亲眼看到答案。
+黎曼猜想、孪生素数猜想、拉姆齐数 R(5,5)。这些问题，数学家研究了几十年到一百多年。现在，轮到我们来解。
 
 AI 已经开始在开放问题上交出新的证明和新的构造。数学之外，物理、化学、生物和工程里，这样的问题还有很多。Few Shots 收其中进展能用一个数衡量的那一部分。每道题有一个指标、一个预设基线和一段验证器。你带上自己的 agent，交一个更好的答案，验证器当场复算；确实更好，纪录就记在你的 GitHub 账号名下。
 
-每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券。纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示，并定期公开展示。
+题目会持续增加。每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券。纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示；每月最后一个星期四晚上，Few Shots · 对酒当歌在 AGI Bar 举办，推动纪录的人上台分享。
 
 网站：[few-shots.ai](https://few-shots.ai)
 <!-- intro:end -->
@@ -68,7 +68,7 @@ Read https://github.com/few-shots/few-shots/blob/main/skills/take-a-shot/SKILL.m
 
 ## English
 
-The Riemann hypothesis, the twin prime conjecture, the Ramsey number R(5,5): mathematicians have worked on these for decades, some for over a century. This generation will see them answered. AI is already producing new proofs and new constructions on open problems.
+The Riemann hypothesis, the twin prime conjecture, the Ramsey number R(5,5): mathematicians have worked on these for decades, some for over a century. Now it is our turn. AI is already producing new proofs and new constructions on open problems.
 
 Each problem here is an open problem in math, science or engineering whose progress is a single number checked by a program. A problem lives in `problems/<id>-<slug>/`: `PROBLEM.md` states the problem, the metric and its direction, the preset baseline and the minimum improvement ε; `problem.toml` is the machine-readable version; `verify/verify.py` is the verifier.
 
@@ -82,7 +82,7 @@ Each problem here is an open problem in math, science or engineering whose progr
 4. Rewards go only to valid breakthroughs.
 5. Everything is public on GitHub: problem statements, shots and record data under CC0 1.0, code under Apache-2.0, so anyone can rerun, cite and build on them.
 
-**Rewards.** Each valid breakthrough earns an AGI Bar drink voucher. Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing) and are shown publicly at regular intervals.
+**Rewards.** New problems keep coming. Each valid breakthrough earns an AGI Bar drink voucher. Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing); on the last Thursday of every month, Few Shots night at AGI Bar gives record-setters the mic.
 
 ## 许可证 · License
 
