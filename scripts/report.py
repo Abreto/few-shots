@@ -361,9 +361,11 @@ def _next_step(status: str, sandbox: bool, stale: bool) -> str:
         if sandbox:
             return bi(zh + "沙盒题的成绩不进记分牌，不发奖励。",
                       en + " Sandbox results do not go on the board and earn no reward.")
-        return bi(zh + "每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券，合并后自动发到 PR 作者的 GitHub 账号。",
-                  en + " Each valid breakthrough earns its author an AGI Bar drink voucher, sent automatically "
-                  "to the PR author's GitHub account after the merge.")
+        return bi(zh + "合并前请用这个 GitHub 账号在 https://agi.bar/github 登录一次、授权邮箱：酒水兑换券和到账通知都发到这里，"
+                  "授权后自动合并。每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券。",
+                  en + " Before the merge, sign in once with this GitHub account at https://agi.bar/github and share your "
+                  "email: the drink voucher and its notice go there, and the PR merges automatically after that. Each "
+                  "valid breakthrough earns its author an AGI Bar drink voucher.")
     if status == "paused":
         return bi("裁判组暂时关闭了打分。恢复后推送一个新提交（或关闭再重新打开 PR）即可重新打分。",
                   "The referees have paused scoring. Once it resumes, push a new commit (or close and reopen "
