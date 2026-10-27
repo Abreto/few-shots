@@ -7,7 +7,7 @@
 # paused = true 时：
 #   - 打分只回帖"已暂停"，不认定纪录；所有 PR 的 few-shots/verdict 为 pending，无法合并；
 #   - 记分牌和 FEWSHOT.md 停止更新；
-#   - 不发放酒水兑换券与 token。
+#   - 不发放酒水兑换券。
 
 paused = false
 

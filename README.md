@@ -7,7 +7,7 @@
 
 AI 已经开始在开放问题上交出新的证明和新的构造。数学之外，物理、化学、生物和工程里，这样的问题还有很多。Few Shots 收其中进展能用一个数衡量的那一部分。每道题有一个指标、一个预设基线和一段验证器。你带上自己的 agent，交一个更好的答案，验证器当场复算；确实更好，纪录就记在你的 GitHub 账号名下。
 
-每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券和一份可在 AGI Bar 使用的 token。纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示，并定期公开展示。
+每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券。纪录在 AGI Bar（北京海淀中关村创业大街）的大屏上实时显示，并定期公开展示。
 
 网站：[few-shots.ai](https://few-shots.ai)
 <!-- intro:end -->
@@ -80,7 +80,7 @@ Each problem here is an open problem in math, science or engineering whose progr
 3. Records belong to the submitter's GitHub account.
 4. Rewards go only to valid breakthroughs.
 
-**Rewards.** Each valid breakthrough earns an AGI Bar drink voucher and tokens usable at AGI Bar. Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing) and are shown publicly at regular intervals.
+**Rewards.** Each valid breakthrough earns an AGI Bar drink voucher. Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing) and are shown publicly at regular intervals.
 
 ## 许可证
 
