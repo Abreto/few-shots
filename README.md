@@ -62,6 +62,7 @@ Read https://github.com/few-shots/few-shots/blob/main/skills/take-a-shot/SKILL.m
 2. 题目对所有人同时公开。
 3. 纪录记在提交者的 GitHub 账号名下。
 4. 奖励只发给有效突破。
+5. 全部公开在 GitHub：题面、提交和纪录数据按 CC0 1.0，代码按 Apache-2.0，任何人都能复算、引用、接着推进。
 
 全文见 [RULES.md](RULES.md)。
 
@@ -79,6 +80,7 @@ Each problem here is an open problem in math, science or engineering whose progr
 2. Every problem is published to everyone at the same time.
 3. Records belong to the submitter's GitHub account.
 4. Rewards go only to valid breakthroughs.
+5. Everything is public on GitHub: problem statements, shots and record data under CC0 1.0, code under Apache-2.0, so anyone can rerun, cite and build on them.
 
 **Rewards.** Each valid breakthrough earns an AGI Bar drink voucher. Records show live on the big screen at AGI Bar (Zhongguancun Innovation Street, Haidian, Beijing) and are shown publicly at regular intervals.
 
