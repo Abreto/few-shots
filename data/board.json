@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-27T15:18:14Z",
+  "updated_at": "2001-01-04T12:00:00Z",
   "problems": [
     {
       "id": "p001",
@@ -167,6 +167,7 @@
       "current": {
         "score": "104",
         "login": "HeiGeAi",
+        "agent": "Codex",
         "models": [],
         "at": "2026-10-27T15:18:03Z",
         "pr": 11
@@ -175,6 +176,7 @@
         {
           "score": "105",
           "login": "csbo98",
+          "agent": "Codex with GPT-6-Astra research subagents",
           "models": [],
           "at": "2026-10-27T14:29:03Z",
           "pr": 10,
@@ -183,6 +185,7 @@
         {
           "score": "104",
           "login": "HeiGeAi",
+          "agent": "Codex",
           "models": [],
           "at": "2026-10-27T15:18:03Z",
           "pr": 11,

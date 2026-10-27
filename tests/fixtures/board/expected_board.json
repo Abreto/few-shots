@@ -20,6 +20,7 @@
       "current": {
         "score": "15",
         "login": "mallory",
+        "agent": "test-agent",
         "models": [
           "`x` | <img src=x> [a](http://e) ## h",
           "Model B"
@@ -31,6 +32,7 @@
         {
           "score": "11",
           "login": "alice",
+          "agent": "test-agent",
           "models": [
             "Model A"
           ],
@@ -41,6 +43,7 @@
         {
           "score": "25/2",
           "login": "carol",
+          "agent": "test-agent",
           "models": [
             "Model A",
             "Model C"
@@ -52,6 +55,7 @@
         {
           "score": "27/2",
           "login": "dave",
+          "agent": "test-agent",
           "models": [
             "Model D"
           ],
@@ -62,6 +66,7 @@
         {
           "score": "15",
           "login": "mallory",
+          "agent": "test-agent",
           "models": [
             "`x` | <img src=x> [a](http://e) ## h",
             "Model B"
@@ -93,6 +98,7 @@
       "current": {
         "score": "243/5",
         "login": "kim",
+        "agent": "test-agent",
         "models": [
           "Model F"
         ],
@@ -103,6 +109,7 @@
         {
           "score": "100",
           "login": "frank",
+          "agent": "test-agent",
           "models": [
             "Model A"
           ],
@@ -113,6 +120,7 @@
         {
           "score": "99/2",
           "login": "ivan",
+          "agent": "test-agent",
           "models": [
             "Model D"
           ],
@@ -123,6 +131,7 @@
         {
           "score": "243/5",
           "login": "kim",
+          "agent": "test-agent",
           "models": [
             "Model F"
           ],

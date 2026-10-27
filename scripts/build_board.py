@@ -273,6 +273,7 @@ class Merged:
     models: tuple[str, ...]
     at: str
     pr: int | None
+    agent: str = ""
 
 
 def record_chain(problem: F.Problem, shots: list[Merged]) -> tuple[list[Merged], list[tuple[Merged, str]]]:
@@ -312,7 +313,7 @@ Warn = Callable[[str], None]
 
 
 def shot_json(s: Merged, with_shot: bool) -> dict[str, Any]:
-    out: dict[str, Any] = {"score": F.fmt(s.score), "login": s.login, "models": list(s.models), "at": s.at, "pr": s.pr}
+    out: dict[str, Any] = {"score": F.fmt(s.score), "login": s.login, "agent": s.agent, "models": list(s.models), "at": s.at, "pr": s.pr}
     if with_shot:
         out["shot"] = s.shot_id
     return out
@@ -348,7 +349,8 @@ def problem_entry(root: Path, pdir: str, source: Source, cache_in: dict, cache_o
             at, pr = shot_merge(source, root, m.commit, path, cache_in, cache_out)
             shot_verdict(source, pr, path, blob, cache_in, cache_out)
             models = tuple(c for c in (clean_text(x, MAX_MODEL_LEN) for x in m.shot.models[:MAX_MODELS]) if c)
-            shots.append(Merged(m.login, m.shot_id, m.shot.claimed_score, models, at, pr))
+            agent = clean_text(m.shot.agent or "", MAX_MODEL_LEN)
+            shots.append(Merged(m.login, m.shot_id, m.shot.claimed_score, models, at, pr, agent))
         except ShotSkip as err:
             warn(f"跳过 {path}：{err}")
 
@@ -444,8 +446,10 @@ def md_escape(text: str, limit: int = 120) -> str:
 def progress_cell(p: dict[str, Any]) -> str:
     if p["progress"] is None:
         return "—"
-    cell = f"+{p['progress']} {md_escape(p['unit'])}"
-    return cell if p["progress_pct"] is None else f"{cell}（{p['progress_pct']:.1f}%）"
+    # 带方向的符号：越小越好的题，进度写成减少了多少（−2 门），越大越好的写成增加了多少（+2 点）
+    sign = "−" if p.get("direction") == "min" else "+"
+    cell = f"{sign}{p['progress']} {md_escape(p['unit'])}"
+    return cell if p["progress_pct"] is None else f"{cell}（{sign}{p['progress_pct']:.1f}%）"
 
 
 def _en_line(text: Any, suffix: str = "") -> str:
