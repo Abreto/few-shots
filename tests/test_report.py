@@ -109,8 +109,9 @@ class RenderTest(unittest.TestCase):
         self.assertTrue(rep.create)
         self.assertIn("验证器确认「长度」从 2047 降低到 290。\n"
                       "The verifier confirms that length decreased from 2047 to 290.", rep.body)
-        self.assertIn("沙盒题", rep.body)
-        self.assertIn("Sandbox results", rep.body)
+        self.assertIn("沙盒题不合并", rep.body)
+        self.assertIn("Sandbox shots are not merged", rep.body)
+        self.assertNotIn("agi.bar/github", rep.body)  # 沙盒题不要求授权邮箱
         self.assertNotIn("兑换券", rep.body)          # 沙盒题不发奖励
         self.assertNotIn("voucher", rep.body)
         self.assertIn("### Few Shots · p000：有效突破 · Valid breakthrough", rep.body)
