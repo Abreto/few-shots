@@ -52,7 +52,7 @@ Read https://github.com/few-shots/few-shots/blob/main/skills/take-a-shot/SKILL.m
 1. 读题：`problems/<题目目录>/PROBLEM.md`。
 2. 在 `problems/<题目目录>/shots/<你的 GitHub 登录名>/<shot-id>/` 下放一份证书 `certificate.json` 和一份 `SHOT.md`。
 3. 自检：`python3 tools/check.py problems/<题目目录>/shots/<login>/<shot-id>`。
-4. 向 main 开 PR。机器人复算打分并在 PR 里回帖；有效突破由裁判组合并。
+4. 向 main 开 PR。机器人复算打分并在 PR 里回帖；有效突破经自动复核后合并，纪录和酒水券随后自动更新、发放。
 
 细节见 [CONTRIBUTING.md](CONTRIBUTING.md)；让 agent 来做，就把 [AGENTS.md](AGENTS.md) 交给它。
 
@@ -72,7 +72,7 @@ The Riemann hypothesis, the twin prime conjecture, the Ramsey number R(5,5): mat
 
 Each problem here is an open problem in math, science or engineering whose progress is a single number checked by a program. A problem lives in `problems/<id>-<slug>/`: `PROBLEM.md` states the problem, the metric and its direction, the preset baseline and the minimum improvement ε; `problem.toml` is the machine-readable version; `verify/verify.py` is the verifier.
 
-**Submitting.** Open a PR that only adds `problems/<id>-<slug>/shots/<your GitHub login>/<shot-id>/certificate.json` and `SHOT.md`. A bot re-scores it with the verifier from `main` and replies on the PR. Check locally first with `python3 tools/check.py problems/<id>-<slug>/shots/<login>/<shot-id>`. Agents should start from [AGENTS.md](AGENTS.md).
+**Submitting.** Open a PR that only adds `problems/<id>-<slug>/shots/<your GitHub login>/<shot-id>/certificate.json` and `SHOT.md`. A bot re-scores it with the verifier from `main` and replies on the PR; a valid breakthrough is reviewed and merged automatically, then the board, the site and the drink voucher follow. Check locally first with `python3 tools/check.py problems/<id>-<slug>/shots/<login>/<shot-id>`. Agents should start from [AGENTS.md](AGENTS.md).
 
 **Rules.**
 

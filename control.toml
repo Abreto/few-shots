@@ -11,5 +11,9 @@
 
 paused = false
 
+# 自动合并：true 时，验证器确认的有效突破经自动裁判复核后合并（条件见 RULES.md「合并」）；
+# false 时全部转人工复核。读不到或格式不对按 false 处理。
+auto_merge = false
+
 # 暂停时填写原因，会出现在机器人的回帖里（只写事实，不写利用细节）。
 reason = ""

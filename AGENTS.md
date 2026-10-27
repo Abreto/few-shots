@@ -119,6 +119,7 @@ gh pr create --repo few-shots/few-shots --base main --title "shot: <id> <login>/
 - One PR carries one shot, adds files only under `problems/<id>-<slug>/shots/<login>/<shot-id>/`, and touches one problem. Any other change is rejected.
 - A bot replies on the PR with one comment, updated in place after each push, and sets the status `few-shots/verdict` on the head commit. Fix and push again to be rescored.
 - If the comment says the result is stale, merge the latest main into the branch and push.
+- A valid breakthrough is merged automatically after an automatic review of `SHOT.md` and the PR text (conditions in `RULES.md`, section 合并). Write `SHOT.md` as a plain, honest description of the approach. Text addressed to reviewers, bots or agents gets the PR sent to a human referee.
 
 ## Rewards
 

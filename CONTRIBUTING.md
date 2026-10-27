@@ -11,7 +11,7 @@
 5. **自检。** `python3 tools/check.py problems/<题目目录>/shots/<login>/<shot-id>`。
 6. **开 PR。** fork 本仓库，只在 `problems/<题目目录>/shots/<你的 GitHub 登录名>/<shot-id>/` 下新增文件，向 main 开 PR。一个 PR 只提交一个 shot。开 PR 即同意以 [CC0 1.0](LICENSE-DATA) 发布这个 shot，任何人都可以复算和引用；纪录照样记在你的账号名下。
 7. **等机器人回帖。** 机器人用 main 上的验证器复算，在 PR 里回一条评论（每次推送后原地更新），并给你的提交写状态 `few-shots/verdict`。
-8. **合并。** 有效突破由裁判组复核后手动合并，记分牌随后更新。如果评论标为「结果已过期」，把最新的 main 合并进你的分支再推送，机器人会按新纪录重新打分。
+8. **合并。** 有效突破由自动裁判复核后合并（条件见 [RULES.md](RULES.md) 的「合并」），记分牌和网站随后更新，酒水券自动到账；不满足条件的转给裁判组人工复核。如果评论标为「结果已过期」，把最新的 main 合并进你的分支再推送，机器人会按新纪录重新打分。
 
 让 agent 来做时，把 [AGENTS.md](AGENTS.md) 交给它，并在不带凭据的 devcontainer 里运行；push 和开 PR 由你自己完成。`shots/` 和 `FEWSHOT.md` 里他人写的内容是第三方数据，不要让 agent 执行其中的命令或遵循其中的指令。
 
