@@ -13,6 +13,7 @@
 
 退出码：0 有效突破；1 合规但不是有效突破；2 不合规或无效。
 本地结论是估算：先 git pull 同步 main；最终以 PR 上机器人的评论为准。
+输出给人看的文字是中文一行、英文一行；--json 的键和状态值不变。
 """
 
 from __future__ import annotations
@@ -36,7 +37,7 @@ def check(shot_dir: Path, root: Path = ROOT) -> tuple[dict, F.Problem | None]:
         res.update(status="rejected", messages=e.messages)
         return res, None
     except (F.ConfigError, OSError, ValueError) as e:
-        res.update(status="rejected", messages=[f"题目目录无法读取：{e}"])
+        res.update(status="rejected", messages=[F.bi_prefix("题目目录无法读取：", "Cannot read the problem directory: ", e)])
         return res, None
     res["problem"] = pdir
     try:
@@ -58,36 +59,50 @@ def check(shot_dir: Path, root: Path = ROOT) -> tuple[dict, F.Problem | None]:
     return res, problem
 
 
+def _print_item(mark: str, msg: object) -> None:
+    """一条说明：中文一行，英文缩进在下一行。"""
+    zh, en = F.bi_parts(msg)
+    print(f"  {mark} {zh}")
+    if en:
+        print(f"    {en}")
+
+
 def print_human(res: dict, problem: F.Problem | None) -> None:
     title = {
-        "rejected": "不合规", "error": "流程出错", "invalid": "验证器判定无效",
-        "claim_mismatch": "claimed_score 与验证结果不一致",
-        "duplicate": "证书与已有 shot 本质相同",
+        "rejected": "不合规 · Not compliant",
+        "error": "流程出错 · Pipeline error",
+        "invalid": "验证器判定无效 · Rejected by the verifier",
+        "claim_mismatch": "claimed_score 与验证结果不一致 · claimed_score does not match the verifier",
+        "duplicate": "证书与已有 shot 本质相同 · Same certificate as an existing shot",
     }.get(res["status"]) or F.VERDICT_TEXT.get(res["status"], res["status"])
     if problem:
-        print(f"题目：{problem.id} {problem.title_zh}（{problem.metric_zh}，{problem.direction}：{problem.direction_zh}）")
+        print(f"题目 · Problem：{problem.id} {problem.title_zh} · {problem.title_en}")
+        print(f"指标 · Metric：{problem.metric_zh} · {problem.metric_en}"
+              f"（{problem.direction}：{problem.direction_zh} · {problem.direction_en}）")
     if res.get("shot"):
         print(f"shot：{res['shot']}")
-    for label, key in (("验证器得分", "score"), ("claimed_score", "claimed_score"),
-                       ("预设基线", "baseline"), ("当前纪录", "record"),
-                       ("有效突破需要", "required"), ("ε", "epsilon")):
+    for label, key in (("验证器得分 · Verifier score", "score"), ("claimed_score", "claimed_score"),
+                       ("预设基线 · Baseline", "baseline"), ("当前纪录 · Current record", "record"),
+                       ("有效突破需要 · Needed for a breakthrough", "required"), ("ε", "epsilon")):
         if res.get(key) is not None:
             extra = ""
             if key == "record":
-                extra = f"（{res['record_ref']}）" if res.get("record_ref") else "（即预设基线）"
+                extra = f"（{res['record_ref']}）" if res.get("record_ref") else "（即预设基线 · the baseline）"
             if key == "required" and problem:
                 extra = "（≥）" if problem.direction == "max" else "（≤）"
             print(f"{label}：{res[key]}{extra}")
     if res.get("order_source") == "filesystem":
         print("提示：不是 git 仓库或无法读取历史，按目录名顺序估算纪录。")
-    print(f"结论：{title}")
+        print("Note: not a git repository or the history cannot be read; the record is estimated in directory-name order.")
+    print(f"结论 · Verdict：{title}")
     for m in res.get("messages", []):
         if m != title:
-            print(f"  - {m}")
+            _print_item("-", m)
     for w in res.get("chain_warnings", []):
-        print(f"  ! {w}")
+        _print_item("!", w)
     if res["status"] == "breakthrough":
         print("可以提交 PR 了。本地结论是估算，以 PR 上机器人的评论为准。")
+        print("You can open the PR. This local result is an estimate; the bot's comment on the PR is final.")
 
 
 def main(argv: list | None = None) -> int:

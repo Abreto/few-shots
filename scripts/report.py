@@ -8,6 +8,8 @@
 - 题目信息取自 main 上的 problems/<题目>/problem.toml；结果文件里的题目目录名要重新校验。
 - few-shots/verdict 是 main 规则集里的必需检查：只有"有效突破且未过期"（或不涉及任何题目 shots/ 的 PR）为 success，
   暂停时为 pending，其余为 failure / error。合并按钮由它约束，不靠人工比对 SHA。
+- 参与者看到的文字都是中文一行、英文一行（短标签写成"中文 · English"）；few-shots/verdict 的描述在 140 字以内，
+  有效突破的描述必须以"有效突破"开头（自动裁判与记分牌按这个前缀识别）。
 - 评论第二行是机器人自己写的隐藏数据：本 PR 验证到的证书哈希（连同题目目录）及首次时间、每道题首次判为
   有效突破的提交与时间。后续推送只追加、不覆盖；去重时读取其他开放 PR 的同类数据（只认机器人账号写的评论），
   只和同一道题比。
@@ -44,20 +46,19 @@ MAX_OPEN_PRS = 100      # 去重时最多检查多少个开放 PR
 TIME_RE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z")
 RUN_URL_RE = re.compile(r"https://github\.com/[A-Za-z0-9._/-]{3,200}/actions/runs/[0-9]{1,20}")
 
+VERDICT_PREFIX = "有效突破"  # 有效突破的 few-shots/verdict 描述必须以它开头
 TITLES = {
-    "paused": "打分已暂停",
-    "not_shot": "不是 shot 提交",
-    "rejected": "未通过提交检查",
-    "error": "评分流程出错",
-    "invalid": "验证器判定证书无效",
-    "claim_mismatch": "claimed_score 与验证结果不一致",
-    "duplicate": "证书与已有提交本质相同",
-    "below_baseline": "未达到预设基线",
-    "not_record": "达到预设基线，但没有刷新当前纪录",
-    "below_epsilon": "刷新了当前纪录，但改进幅度不足 ε",
-    "breakthrough": "有效突破",
+    "paused": "打分已暂停 · Scoring paused",
+    "not_shot": "不是 shot 提交 · Not a shot submission",
+    "rejected": "未通过提交检查 · Failed submission checks",
+    "error": "评分流程出错 · Scoring pipeline error",
+    "invalid": "验证器判定证书无效 · Certificate rejected by the verifier",
+    "claim_mismatch": "claimed_score 与验证结果不一致 · claimed_score does not match the verifier",
+    "duplicate": "证书与已有提交本质相同 · Same certificate as an earlier submission",
+    **F.VERDICT_TEXT,   # below_baseline / not_record / below_epsilon / breakthrough
 }
-STALE_TITLE = "结果已过期，请勿合并"
+STALE_TITLE = "结果已过期，请勿合并 · Result is stale; do not merge"
+bi = F.bi
 
 
 @dataclass
@@ -162,18 +163,43 @@ def _short(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
+def _breakthrough_description(score: str | None) -> str:
+    """有效突破的状态描述：以"有效突破"开头；中英文放不进 140 字时只留中文。"""
+    desc = f"{VERDICT_PREFIX}：{score} · Valid breakthrough: {score}"
+    return desc if len(desc) <= 140 else _short(f"{VERDICT_PREFIX}：{score}", 140)
+
+
 def _state(status: str, stale: bool, ctx: Context, score: str | None) -> tuple[str, str]:
     if status == "paused":
-        return "pending", "打分已暂停，恢复后重新打分"
+        return "pending", "打分已暂停，恢复后重新打分 · Scoring paused; rescored after it resumes"
     if status == "not_shot":
-        return "success", "不涉及任何题目的 shots/，不打分"
+        return "success", "不涉及任何题目的 shots/，不打分 · Touches no problem's shots/; not scored"
     if status == "error":
         return "error", TITLES["error"]
     if status == "breakthrough":
         if ctx.checked and ctx.fresh and not stale:
-            return "success", _short(f"有效突破：{score}", 140)
+            return "success", _breakthrough_description(score)
         return "failure", STALE_TITLE
     return "failure", TITLES[status]
+
+
+def _bilingual(msg: object, limit: int) -> tuple[str, str]:
+    """清洗一条说明的中文与英文两行；单语说明两行相同。"""
+    zh, en = F.bi_parts(msg)
+    zh = F.sanitize_message(zh, limit)
+    return zh, (zh if en is None else F.sanitize_message(en, limit))
+
+
+def _bullets(items: list, limit: int) -> list:
+    """每条说明一个列表项：中文一行，英文缩进在下一行（GitHub 评论把换行渲染成换行）。"""
+    out = []
+    for m in items:
+        zh, en = F.bi_parts(m)
+        out.append(f"- {F.sanitize_message(zh, limit)}")
+        en = F.sanitize_message(en, limit) if en is not None else ""
+        if en:
+            out.append(f"  {en}")
+    return out
 
 
 def render(result: dict | None, event: dict, problem: F.Problem | None, ctx: Context | None = None) -> Report:
@@ -189,10 +215,12 @@ def render(result: dict | None, event: dict, problem: F.Problem | None, ctx: Con
     status = result.get("status") if result and result.get("status") in F.STATUSES else "error"
     messages = [m for m in (result or {}).get("messages", []) if isinstance(m, str)][:20]
     if result is None:
-        messages = ["没有拿到打分结果文件。请联系裁判组，或在 Actions 日志里查看本次运行。"]
+        messages = [bi("没有拿到打分结果文件。请联系裁判组，或在 Actions 日志里查看本次运行。",
+                       "The scoring result file is missing. Please contact the referees, or look up this run "
+                       "in the Actions log.")]
     if problem is None and status not in ("paused", "not_shot", "rejected", "error"):
         status = "error"
-        messages = ["结果里的题目目录在 main 上无法读取"]
+        messages = [bi("结果里的题目目录在 main 上无法读取", "The problem directory in the result cannot be read on main")]
     if ctx.paused:
         status = "paused"
         reason = ctx.paused.get("reason")
@@ -235,92 +263,126 @@ def render(result: dict | None, event: dict, problem: F.Problem | None, ctx: Con
 
     lines = [MARKER, data_line(data)]
     where = f" · {problem.id}" if problem else ""
-    lines += [f"### Few Shots 评分{where}：{STALE_TITLE if stale else TITLES[status]}", ""]
-    why = F.sanitize_message(ctx.stale_reason or "无法确认结果对应当前提交与 main", 200)
+    lines += [f"### Few Shots{where}：{STALE_TITLE if stale else TITLES[status]}", ""]
+    why_zh, why_en = _bilingual(ctx.stale_reason or bi("无法确认结果对应当前提交与 main",
+                                                      "it cannot be confirmed that the result matches the current "
+                                                      "commit and main"), 200)
     if stale:
-        lines += [f"本次运行的结论是「{TITLES['breakthrough']}」，但{why}。这个结论不能作为合并依据。", ""]
+        lines += [f"本次运行的结论是「有效突破」，但{why_zh}。这个结论不能作为合并依据。",
+                  f"This run found a valid breakthrough, but {why_en}. It cannot be used as the basis for merging.",
+                  ""]
     elif ctx.checked and not ctx.fresh and status not in ("paused", "not_shot", "error"):
-        lines += [f"注意：{why}，以最新一次运行为准。", ""]
+        lines += [f"注意：{why_zh}，以最新一次运行为准。", f"Note: {why_en}; the latest run is what counts.", ""]
 
     record, required = _num(r.get("record")), _num(r.get("required"))
     record_ref = _ref(r.get("record_ref"))
 
     if problem and status == "breakthrough" and not stale and score and record:
-        verb = "提升到" if problem.direction == "max" else "降低到"
-        lines += [f"验证器确认「{problem.metric_zh}」从 {record} {verb} {score}。", ""]
+        verb, verb_en = ("提升到", "increased") if problem.direction == "max" else ("降低到", "decreased")
+        lines += [f"验证器确认「{problem.metric_zh}」从 {record} {verb} {score}。",
+                  f"The verifier confirms that {problem.metric_en} {verb_en} from {record} to {score}.", ""]
     if duplicate_of is not None:
         lines += [f"证书与 #{duplicate_of} 中更早由机器人验证到的证书本质相同（canonical_hash 相同），"
-                  "以先验证到的 PR 为准。", ""]
+                  "以先验证到的 PR 为准。",
+                  f"The certificate is essentially the same as one the bot verified earlier in #{duplicate_of} "
+                  "(same canonical_hash); the PR verified first takes precedence.", ""]
 
     shot = r.get("shot") if isinstance(r.get("shot"), dict) else None
     rows = []
     if problem:
-        rows.append(("题目", f"`{F.PROBLEMS_DIR}/{problem.dir}`"))
+        rows.append(("题目 · Problem", f"`{F.PROBLEMS_DIR}/{problem.dir}`"))
     if shot:
         rows.append(("shot", _code(f"{shot.get('login')}/{shot.get('shot_id')}")))
     if head_sha:
-        rows.append(("评分提交", f"`{head_sha[:12]}`"))
+        rows.append(("评分提交 · Scored commit", f"`{head_sha[:12]}`"))
     if base_sha:
-        rows.append(("打分时的 main", f"`{base_sha[:12]}`"))
+        rows.append(("打分时的 main · main when scored", f"`{base_sha[:12]}`"))
     if score is not None:
-        rows.append(("验证器得分", f"`{score}`"))
+        rows.append(("验证器得分 · Verifier score", f"`{score}`"))
     if claimed is not None:
-        rows.append(("声明得分 claimed_score", f"`{claimed}`"))
+        rows.append(("声明得分 · claimed_score", f"`{claimed}`"))
     if problem and status not in ("paused", "not_shot"):
-        rows.append(("预设基线", f"`{F.fmt(problem.baseline)}`"))
+        rows.append(("预设基线 · Baseline", f"`{F.fmt(problem.baseline)}`"))
     if problem and record is not None:
-        holder = f"（{F.sanitize_inline(record_ref, 80)}）" if record_ref else "（即预设基线）"
-        rows.append(("当前纪录", f"`{record}`{holder}"))
+        holder = f"（{F.sanitize_inline(record_ref, 80)}）" if record_ref else "（即预设基线 · the baseline）"
+        rows.append(("当前纪录 · Current record", f"`{record}`{holder}"))
     if problem and required is not None:
         op = "≥" if problem.direction == "max" else "≤"
-        mode = "相对" if problem.epsilon_mode == "relative" else "绝对"
-        rows.append(("有效突破需要", f"{op} `{required}`（ε = {F.fmt(problem.epsilon)}，{mode}）"))
+        mode = "相对 · relative" if problem.epsilon_mode == "relative" else "绝对 · absolute"
+        rows.append(("有效突破需要 · Needed for a breakthrough",
+                     f"{op} `{required}`（ε = {F.fmt(problem.epsilon)}，{mode}）"))
     progress = r.get("progress")
     if problem and status == "breakthrough" and not stale and isinstance(progress, str):
-        rows.append(("相对基线的进度", f"{_code(progress, 40)} {problem.progress_unit}"))
+        rows.append(("相对基线的进度 · Progress over baseline", f"{_code(progress, 40)} {problem.progress_unit}"))
     if h:
-        rows.append(("证书规范化哈希", f"`{h[:16]}…`"))
+        rows.append(("证书规范化哈希 · Canonical hash", f"`{h[:16]}…`"))
     if first:
-        rows.append(("首次判为有效突破", f"`{first['sha'][:12]}`（{first['at']}）"))
+        rows.append(("首次判为有效突破 · First valid breakthrough", f"`{first['sha'][:12]}`（{first['at']}）"))
     if rows:
-        lines += ["| 项目 | 值 |", "| --- | --- |"] + [f"| {k} | {v} |" for k, v in rows] + [""]
+        lines += ["| 项目 · Item | 值 · Value |", "| --- | --- |"] + [f"| {k} | {v} |" for k, v in rows] + [""]
 
     if messages and status != "breakthrough":
-        lines += ["说明："] + [f"- {F.sanitize_message(m, 300)}" for m in messages] + [""]
+        lines += ["说明 · Details："] + _bullets(messages, 300) + [""]
 
     warnings = [w for w in r.get("chain_warnings", []) if isinstance(w, str)][:20] \
         if isinstance(r.get("chain_warnings"), list) else []
     if warnings and status != "paused":
-        lines += ["复算 main 上的纪录链时发现（请裁判核对）："] + \
-                 [f"- {F.sanitize_message(w, 200)}" for w in warnings] + [""]
+        lines += ["复算 main 上的纪录链时发现（请裁判核对）：",
+                  "Found while re-verifying the record chain on main (for the referees to check):"] + \
+                 _bullets(warnings, 200) + [""]
     if status == "breakthrough" and not ctx.others_complete:
-        lines += ["注意：开放的 PR 过多或读取失败，没有完成与其他开放 PR 的重复检查，请裁判核对。", ""]
+        lines += ["注意：开放的 PR 过多或读取失败，没有完成与其他开放 PR 的重复检查，请裁判核对。",
+                  "Note: there are too many open PRs or a read failed, so the duplicate check against other open "
+                  "PRs is incomplete. Referees, please check.", ""]
 
     lines += [_next_step(status, bool(problem and problem.sandbox), stale), ""]
-    lines.append(f"<sub>本评论由评分流水线自动生成，每次推送后原地更新；打分只使用 main 上的验证器与规则；"
-                 f"能否合并以提交状态 {STATUS_CONTEXT} 为准。记分牌：{SCOREBOARD}</sub>")
+    lines += [f"<sub>本评论由评分流水线自动生成，每次推送后原地更新；打分只使用 main 上的验证器与规则；"
+              f"能否合并以提交状态 {STATUS_CONTEXT} 为准。</sub>",
+              f"<sub>Generated by the scoring pipeline and updated in place after each push. Scoring uses only "
+              f"the verifier and rules on main; the commit status {STATUS_CONTEXT} decides whether the PR can "
+              f"be merged.</sub>",
+              f"<sub>记分牌 · Board：{SCOREBOARD}</sub>"]
     return Report("\n".join(lines) + "\n", status != "not_shot", status, state, description, data)
 
 
 def _next_step(status: str, sandbox: bool, stale: bool) -> str:
+    """下一步：中文一行，英文一行。"""
     if stale:
-        return ("请勿合并。PR 有新推送时机器人会自动重新打分；main 前进时，请先合并最新的 main"
-                "（或由裁判点 Update branch），推送后会重新打分。")
+        return bi("请勿合并。PR 有新推送时机器人会自动重新打分；main 前进时，请先合并最新的 main"
+                  "（或由裁判点 Update branch），推送后会重新打分。",
+                  "Do not merge. A new push to the PR is rescored automatically; if main has moved on, merge the "
+                  "latest main first (or a referee clicks Update branch), and the push is rescored.")
     if status == "breakthrough":
-        s = "下一步：裁判组复核后手动合并；合并后计入纪录链，并汇编进这道题的 FEWSHOT.md。"
+        zh = ("下一步：自动裁判复核 SHOT.md 和 PR 说明后合并（条件见 RULES.md「合并」，不满足的转人工复核）；"
+              "合并后计入纪录链，并汇编进这道题的 FEWSHOT.md。")
+        en = ("Next: the automatic referee reviews SHOT.md and the PR text and merges it (conditions in RULES.md, "
+              "Merging; otherwise a referee reviews it by hand); once merged it joins the record chain and is "
+              "compiled into this problem's FEWSHOT.md.")
         if sandbox:
-            return s + "沙盒题的成绩不进记分牌，不发奖励。"
-        return s + "每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券和一份可在 AGI Bar 使用的 token。"
+            return bi(zh + "沙盒题的成绩不进记分牌，不发奖励。",
+                      en + " Sandbox results do not go on the board and earn no reward.")
+        return bi(zh + "每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券，合并后自动发到 PR 作者的 GitHub 账号。",
+                  en + " Each valid breakthrough earns its author an AGI Bar drink voucher, sent automatically "
+                  "to the PR author's GitHub account after the merge.")
     if status == "paused":
-        return "裁判组暂时关闭了打分。恢复后推送一个新提交（或关闭再重新打开 PR）即可重新打分。"
+        return bi("裁判组暂时关闭了打分。恢复后推送一个新提交（或关闭再重新打开 PR）即可重新打分。",
+                  "The referees have paused scoring. Once it resumes, push a new commit (or close and reopen "
+                  "the PR) to be rescored.")
     if status == "not_shot":
-        return "这个 PR 不涉及任何题目的 shots/，不打分。"
+        return bi("这个 PR 不涉及任何题目的 shots/，不打分。",
+                  "This PR does not touch any problem's shots/, so it is not scored.")
     if status == "error":
-        return "这不是你的问题。请联系裁判组；修复后推送一个新提交即可重新打分。"
+        return bi("这不是你的问题。请联系裁判组；修复后推送一个新提交即可重新打分。",
+                  "This is not a problem with your submission. Please contact the referees; after the fix, "
+                  "push a new commit to be rescored.")
     if status in ("rejected", "invalid", "claim_mismatch"):
-        return ("请按上面的说明修改后推送新提交，机器人会重新打分。"
-                "本地可先运行 `python3 tools/check.py problems/<题目目录>/shots/<login>/<shot-id>` 自检。")
-    return "只有有效突破会被合并，这个 PR 不会被合并。继续改进后推送新提交，机器人会重新打分。"
+        return bi("请按上面的说明修改后推送新提交，机器人会重新打分。"
+                  "本地可先运行 `python3 tools/check.py problems/<题目目录>/shots/<login>/<shot-id>` 自检。",
+                  "Fix the issues above and push a new commit; the bot will rescore it. To check locally "
+                  "first, run `python3 tools/check.py problems/<problem-dir>/shots/<login>/<shot-id>`.")
+    return bi("只有有效突破会被合并，这个 PR 不会被合并。继续改进后推送新提交，机器人会重新打分。",
+              "Only valid breakthroughs are merged, so this PR will not be merged. Keep improving and push "
+              "a new commit; the bot will rescore it.")
 
 
 # ---------------------------------------------------------------- 读 GitHub 状态
@@ -352,17 +414,19 @@ def check_fresh(api: F.GitHubAPI, repo: str, number: int, head_sha: str | None,
         pr = api.get(f"/repos/{repo}/pulls/{number}")
         ref = api.get(f"/repos/{repo}/git/ref/heads/{BASE_BRANCH}")
     except F.GitHubAPIError:
-        return False, "无法读取 PR 或 main 的当前状态"
+        return False, bi("无法读取 PR 或 main 的当前状态", "the current state of the PR or main cannot be read")
     cur_head = _sha(((pr or {}).get("head") or {}).get("sha")) if isinstance(pr, dict) else None
     cur_main = _sha(((ref or {}).get("object") or {}).get("sha")) if isinstance(ref, dict) else None
     if not cur_head or not cur_main:
-        return False, "无法读取 PR 或 main 的当前状态"
+        return False, bi("无法读取 PR 或 main 的当前状态", "the current state of the PR or main cannot be read")
     if head_sha != cur_head:
-        return False, "打分后 PR 又有新的推送，以最新一次运行为准"
+        return False, bi("打分后 PR 又有新的推送，以最新一次运行为准",
+                         "the PR received a new push after scoring")
     if not base_sha:
-        return False, "结果里没有打分时 main 的提交"
+        return False, bi("结果里没有打分时 main 的提交", "the result does not record which main commit was scored")
     if base_sha != cur_main:
-        return False, "打分后 main 已经前进（例如别的 shot 被合并）"
+        return False, bi("打分后 main 已经前进（例如别的 shot 被合并）",
+                         "main moved on after scoring (for example, another shot was merged)")
     return True, None
 
 

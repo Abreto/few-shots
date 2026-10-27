@@ -29,6 +29,8 @@ MAX_LISTED_FILES = 300   # 最多翻三页 PR 文件列表
 MAX_MESSAGES = 20
 MAX_PR_FILES = 64        # 读题目配置之前的文件数上限（problem.toml 的 max_files 不会超过它）
 SHOT_HINT = F.SHOT_DIR_HINT
+SHOT_HINT_EN = F.SHOT_DIR_HINT_EN
+bi = F.bi
 
 
 class GateResult(Exception):
@@ -55,7 +57,7 @@ def _show(name: object) -> str:
     """只回显符合白名单字符集的路径，其余用占位符代替。"""
     if isinstance(name, str) and len(name) <= 200 and all(c.isascii() and (c.isalnum() or c in "/._-") for c in name):
         return name
-    return "（含不允许字符的路径）"
+    return "（含不允许字符的路径 · path with disallowed characters）"
 
 
 # ---------------------------------------------------------------- 纯函数（可单测）
@@ -73,16 +75,20 @@ def touches_shots(name: object) -> bool:
 def classify_pr_files(files: list, author: str, base_root: Path) -> tuple[Target, F.Problem]:
     """根据 PR 文件列表判断：是不是 shot 提交、提交到哪道题、是否只在白名单路径内新增文件。"""
     if not isinstance(files, list) or not files:
-        raise GateResult("not_shot", ["PR 没有改动任何文件"])
+        raise GateResult("not_shot", [bi("PR 没有改动任何文件", "The PR changes no files")])
     names = [f.get("filename") if isinstance(f, dict) else None for f in files]
     if not any(touches_shots(n) for n in names):
         if len(files) >= MAX_LISTED_FILES:
-            raise GateResult("rejected", ["PR 改动的文件过多"])
-        raise GateResult("not_shot", ["PR 不涉及任何题目的 shots/，不打分"])
+            raise GateResult("rejected", [bi("PR 改动的文件过多", "The PR changes too many files")])
+        raise GateResult("not_shot", [bi("PR 不涉及任何题目的 shots/，不打分",
+                                           "The PR does not touch any problem's shots/; not scored")])
     if not F.LOGIN_RE.fullmatch(author or ""):
-        raise GateResult("rejected", ["PR 作者的登录名不符合规则（机器人账号不能提交 shot）"])
+        raise GateResult("rejected", [bi("PR 作者的登录名不符合规则（机器人账号不能提交 shot）",
+                                           "The PR author's login is not allowed (bot accounts cannot submit shots)")])
     if len(files) > MAX_PR_FILES:
-        raise GateResult("rejected", [f"一个 shot 最多 {MAX_PR_FILES} 个文件，本 PR 改动了 {len(files)} 个以上"])
+        raise GateResult("rejected", [bi(f"一个 shot 最多 {MAX_PR_FILES} 个文件，本 PR 改动了 {len(files)} 个以上",
+                                           f"A shot has at most {MAX_PR_FILES} files; this PR changes "
+                                           f"{len(files)} or more")])
 
     errs: list = []
     targets: set = set()
@@ -90,29 +96,37 @@ def classify_pr_files(files: list, author: str, base_root: Path) -> tuple[Target
     for f, name in zip(files, names):
         status = f.get("status") if isinstance(f, dict) else None
         if not isinstance(name, str):
-            errs.append("PR 文件列表格式异常")
+            errs.append(bi("PR 文件列表格式异常", "The PR file list is malformed"))
             continue
         parts = name.split("/")
         if len(parts) != 6 or parts[0] != F.PROBLEMS_DIR or parts[2] != "shots":
-            errs.append(f"只允许在 {SHOT_HINT} 下新增文件，不允许改动：{_show(name)}")
+            errs.append(bi(f"只允许在 {SHOT_HINT} 下新增文件，不允许改动：{_show(name)}",
+                              f"Only new files under {SHOT_HINT_EN} are allowed; this change is not: {_show(name)}"))
             continue
         _, pdir, _, login, sid, fname = parts
         if not F.PROBLEM_DIR_RE.fullmatch(pdir):
-            errs.append(f"题目目录不合规：{_show(pdir)}（形如 p001-slug）")
+            errs.append(bi(f"题目目录不合规：{_show(pdir)}（形如 p001-slug）",
+                              f"Invalid problem directory: {_show(pdir)} (must look like p001-slug)"))
         if login != author:
-            errs.append(f"只能提交到 shots/{author}/ 下（PR 作者本人的目录），不能写入 shots/{_show(login)}/")
+            errs.append(bi(f"只能提交到 shots/{author}/ 下（PR 作者本人的目录），不能写入 shots/{_show(login)}/",
+                              f"You can only submit under shots/{author}/ (the PR author's own directory), "
+                              f"not shots/{_show(login)}/"))
         if not F.SHOT_ID_RE.fullmatch(sid):
-            errs.append(f"shot-id 不合规：{_show(sid)}（只能用小写字母、数字、连字符，最长 64）")
+            errs.append(bi(f"shot-id 不合规：{_show(sid)}（只能用小写字母、数字、连字符，最长 64）",
+                              f"Invalid shot-id: {_show(sid)} (lowercase letters, digits and hyphens only, at most 64)"))
         if not F.FILE_NAME_RE.fullmatch(fname):
-            errs.append(f"文件名不允许：{_show(fname)}（只允许字母数字开头的 .md/.json/.txt/.csv，不允许隐藏文件）")
+            errs.append(bi(f"文件名不允许：{_show(fname)}（只允许字母数字开头的 .md/.json/.txt/.csv，不允许隐藏文件）",
+                              f"File name not allowed: {_show(fname)} (only .md/.json/.txt/.csv names that start "
+                              "with a letter or digit; no hidden files)"))
         if status != "added":
-            errs.append(f"只允许新增文件，{_show(name)} 的状态是 {_show(status)}")
+            errs.append(bi(f"只允许新增文件，{_show(name)} 的状态是 {_show(status)}",
+                              f"Only added files are allowed; {_show(name)} has status {_show(status)}"))
         targets.add((pdir, login, sid))
         fnames.append(fname)
     if len({t[0] for t in targets}) > 1:
-        errs.append("一个 PR 只能提交到一道题")
+        errs.append(bi("一个 PR 只能提交到一道题", "A PR can submit to only one problem"))
     elif len(targets) > 1:
-        errs.append("一个 PR 只能提交一个 shot 目录")
+        errs.append(bi("一个 PR 只能提交一个 shot 目录", "A PR can submit only one shot directory"))
     if errs:
         raise GateResult("rejected", errs)
 
@@ -120,16 +134,20 @@ def classify_pr_files(files: list, author: str, base_root: Path) -> tuple[Target
     try:
         problem = F.load_problem_dir(base_root, pdir)
     except (F.ConfigError, OSError, ValueError):
-        raise GateResult("rejected", [f"main 上没有题目目录 {F.PROBLEMS_DIR}/{_show(pdir)}"]) from None
+        raise GateResult("rejected", [bi(f"main 上没有题目目录 {F.PROBLEMS_DIR}/{_show(pdir)}",
+                                           f"There is no problem directory {F.PROBLEMS_DIR}/{_show(pdir)} on main")]) \
+            from None
     if len(files) > problem.max_files:
-        raise GateResult("rejected", [f"一个 shot 最多 {problem.max_files} 个文件，本 PR 改动了 {len(files)} 个"])
+        raise GateResult("rejected", [bi(f"一个 shot 最多 {problem.max_files} 个文件，本 PR 改动了 {len(files)} 个",
+                                           f"A shot has at most {problem.max_files} files; this PR changes {len(files)}")])
     if len(set(fnames)) != len(fnames):
-        errs.append("文件列表中有重复的文件名")
+        errs.append(bi("文件列表中有重复的文件名", "The file list has duplicate file names"))
     for req in F.REQUIRED_FILES:
         if req not in fnames:
-            errs.append(f"缺少 {req}")
+            errs.append(bi(f"缺少 {req}", f"Missing {req}"))
     if (base_root / F.PROBLEMS_DIR / pdir / "shots" / login / sid).exists():
-        errs.append("main 上这道题已经有同名的 shot 目录，请换一个 shot-id")
+        errs.append(bi("main 上这道题已经有同名的 shot 目录，请换一个 shot-id",
+                       "This problem already has a shot directory with this name on main; use another shot-id"))
     if errs:
         raise GateResult("rejected", errs)
     return Target(pdir, login, sid, tuple(sorted(fnames))), problem
@@ -145,29 +163,32 @@ def check_tree_entries(entries: list, target: Target, problem: F.Problem) -> dic
         shown = name if isinstance(name, str) and F.FILE_NAME_RE.fullmatch(name) else _show(name)
         present.add(name)
         if mode == "120000":
-            errs.append(f"{shown} 是符号链接，不允许")
+            errs.append(bi(f"{shown} 是符号链接，不允许", f"{shown} is a symlink, which is not allowed"))
         elif typ == "tree" or mode == "040000":
-            errs.append(f"{shown} 是子目录，不允许")
+            errs.append(bi(f"{shown} 是子目录，不允许", f"{shown} is a subdirectory, which is not allowed"))
         elif typ == "commit" or mode == "160000":
-            errs.append(f"{shown} 是子模块，不允许")
+            errs.append(bi(f"{shown} 是子模块，不允许", f"{shown} is a submodule, which is not allowed"))
         elif typ != "blob" or mode not in ("100644", "100755"):
-            errs.append(f"{shown} 不是普通文件")
+            errs.append(bi(f"{shown} 不是普通文件", f"{shown} is not a regular file"))
         else:
             by_name[name] = e
     if present != set(target.names):
-        errs.append("PR head 上的 shot 目录内容与 PR 文件列表不一致")
+        errs.append(bi("PR head 上的 shot 目录内容与 PR 文件列表不一致",
+                       "The shot directory on the PR head does not match the PR file list"))
     total = 0
     for name, e in by_name.items():
         size = e.get("size")
         if type(size) is not int or size < 0:
-            errs.append(f"{_show(name)} 的大小未知")
+            errs.append(bi(f"{_show(name)} 的大小未知", f"The size of {_show(name)} is unknown"))
             continue
         limit = problem.file_limit(name)
         if size > limit:
-            errs.append(f"{_show(name)} 有 {size} 字节，超过上限 {limit}")
+            errs.append(bi(f"{_show(name)} 有 {size} 字节，超过上限 {limit}",
+                           f"{_show(name)} is {size} bytes, over the limit of {limit}"))
         total += size
     if total > problem.max_total_bytes:
-        errs.append(f"shot 总大小 {total} 字节，超过上限 {problem.max_total_bytes}")
+        errs.append(bi(f"shot 总大小 {total} 字节，超过上限 {problem.max_total_bytes}",
+                       f"The shot is {total} bytes in total, over the limit of {problem.max_total_bytes}"))
     if errs:
         raise GateResult("rejected", errs)
     return by_name
@@ -181,13 +202,14 @@ def check_blob(name: str, data: bytes, entry: dict) -> None:
     sha = entry.get("sha", "")
     algo = "sha256" if len(sha) == 64 else "sha1"
     if len(data) != entry.get("size") or git_blob_sha(data, algo) != sha:
-        raise GateResult("error", [f"{name} 下载内容校验失败"])
+        raise GateResult("error", [bi(f"{name} 下载内容校验失败", f"The downloaded content of {name} failed verification")])
     if b"\x00" in data:
-        raise GateResult("rejected", [f"{name} 含有 NUL 字节，只允许文本文件"])
+        raise GateResult("rejected", [bi(f"{name} 含有 NUL 字节，只允许文本文件",
+                                           f"{name} contains NUL bytes; only text files are allowed")])
     try:
         data.decode("utf-8")
     except UnicodeDecodeError:
-        raise GateResult("rejected", [f"{name} 不是 UTF-8 文本"]) from None
+        raise GateResult("rejected", [bi(f"{name} 不是 UTF-8 文本", f"{name} is not UTF-8 text")]) from None
 
 
 # ---------------------------------------------------------------- 访问 GitHub API（只读）
@@ -198,7 +220,7 @@ def list_pr_files(api: F.GitHubAPI, repo: str, number: int) -> list:
     for page in range(1, MAX_LISTED_FILES // 100 + 1):
         items = api.get(f"/repos/{repo}/pulls/{number}/files", {"per_page": 100, "page": page})
         if not isinstance(items, list):
-            raise GateResult("error", ["PR 文件列表格式异常"])
+            raise GateResult("error", [bi("PR 文件列表格式异常", "The PR file list is malformed")])
         files.extend(items)
         if len(items) < 100:
             break
@@ -207,7 +229,7 @@ def list_pr_files(api: F.GitHubAPI, repo: str, number: int) -> list:
 
 def _sha(value: object) -> str:
     if not isinstance(value, str) or not F.COMMIT_SHA_RE.fullmatch(value):
-        raise GateResult("error", ["GitHub API 返回了异常的对象 SHA"])
+        raise GateResult("error", [bi("GitHub API 返回了异常的对象 SHA", "The GitHub API returned a malformed object SHA")])
     return value
 
 
@@ -218,21 +240,23 @@ def fetch_shot(api: F.GitHubAPI, repo: str, head_sha: str, target: Target, probl
     for part in target.parts:
         tree = api.get(f"/repos/{repo}/git/trees/{tree_sha}")
         if not isinstance(tree, dict) or tree.get("truncated") or not isinstance(tree.get("tree"), list):
-            raise GateResult("error", ["无法读取 PR head 上的目录树"])
+            raise GateResult("error", [bi("无法读取 PR head 上的目录树", "Cannot read the directory tree on the PR head")])
         entry = next((e for e in tree["tree"] if e.get("path") == part), None)
         if entry is None or entry.get("type") != "tree" or entry.get("mode") != "040000":
-            raise GateResult("rejected", [f"PR head 上找不到目录 {_show(part)}（或它不是普通目录）"])
+            raise GateResult("rejected", [bi(f"PR head 上找不到目录 {_show(part)}（或它不是普通目录）",
+                                               f"Directory {_show(part)} is missing on the PR head "
+                                               "(or is not a regular directory)")])
         tree_sha = _sha(entry.get("sha"))
     tree = api.get(f"/repos/{repo}/git/trees/{tree_sha}")
     if not isinstance(tree, dict) or tree.get("truncated") or not isinstance(tree.get("tree"), list):
-        raise GateResult("error", ["无法读取 shot 目录"])
+        raise GateResult("error", [bi("无法读取 shot 目录", "Cannot read the shot directory")])
     entries = check_tree_entries(tree["tree"], target, problem)
     blobs: dict = {}
     for name in target.names:
         e = entries[name]
         blob = api.get(f"/repos/{repo}/git/blobs/{_sha(e.get('sha'))}")
         if not isinstance(blob, dict) or blob.get("encoding") != "base64" or not isinstance(blob.get("content"), str):
-            raise GateResult("error", [f"{name} 下载失败"])
+            raise GateResult("error", [bi(f"{name} 下载失败", f"Downloading {name} failed")])
         data = base64.b64decode(blob["content"].encode("ascii", "ignore"))
         check_blob(name, data, e)
         blobs[name] = data
@@ -261,11 +285,12 @@ def parse_event(event: dict) -> tuple:
         head_sha = pr["head"]["sha"]
         repo = event["repository"]["full_name"]
     except (KeyError, TypeError):
-        raise GateResult("error", ["事件数据缺少 pull_request 字段"]) from None
+        raise GateResult("error", [bi("事件数据缺少 pull_request 字段",
+                                        "The event data is missing pull_request fields")]) from None
     if type(number) is not int or number <= 0 or not isinstance(author, str):
-        raise GateResult("error", ["事件数据格式异常"])
+        raise GateResult("error", [bi("事件数据格式异常", "The event data is malformed")])
     if not isinstance(repo, str) or not F.REPO_RE.fullmatch(repo):
-        raise GateResult("error", ["仓库名格式异常"])
+        raise GateResult("error", [bi("仓库名格式异常", "The repository name is malformed")])
     return number, author, _sha(head_sha), repo
 
 
@@ -286,10 +311,12 @@ def run(event: dict, api: F.GitHubAPI, base_root: Path, work: Path) -> dict:
     except GateResult as g:
         result.update(status=g.status, messages=g.messages)
     except F.GitHubAPIError as e:
-        result.update(status="error", messages=[f"GitHub API 调用失败（HTTP {e.status}）"])
+        result.update(status="error", messages=[bi(f"GitHub API 调用失败（HTTP {e.status}）",
+                                                    f"A GitHub API call failed (HTTP {e.status})")])
     except Exception as e:  # 不把异常细节回显给 PR
         print(f"gate internal error: {type(e).__name__}", file=sys.stderr)
-        result.update(status="error", messages=["门禁内部错误，请联系裁判组"])
+        result.update(status="error", messages=[bi("门禁内部错误，请联系裁判组",
+                                                    "Internal error in the gate; please contact the referees")])
     return result
 
 

@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Callable
 
 if sys.version_info < (3, 11):
-    raise SystemExit("需要 Python 3.11 及以上（推荐 3.12）")
+    raise SystemExit("需要 Python 3.11 及以上（推荐 3.12）\nRequires Python 3.11 or later (3.12 recommended)")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REPO = "few-shots/few-shots"        # 本仓库在 GitHub 上的全名
@@ -63,7 +63,7 @@ STATUSES = (
 
 
 class ShotError(ValueError):
-    """shot 不合规；messages 是给参与者看的中文说明。"""
+    """shot 不合规；messages 是给参与者看的说明（中文一行、英文一行，见 bi）。"""
 
     def __init__(self, messages):
         self.messages = [str(m) for m in messages]
@@ -72,6 +72,26 @@ class ShotError(ValueError):
 
 class ConfigError(ValueError):
     pass
+
+
+# ---------------------------------------------------------------- 双语说明
+# 参与者看到的说明都是中文一行、英文一行（中间用换行分开）。回帖与本地自检按行拆开、各自清洗后再显示。
+
+
+def bi(zh: str, en: str) -> str:
+    return f"{zh}\n{en}"
+
+
+def bi_parts(msg: object) -> tuple[str, str | None]:
+    """拆成 (中文, 英文)；不是双语的说明返回 (原文, None)。"""
+    zh, sep, en = str(msg).partition("\n")
+    return zh, (en if sep else None)
+
+
+def bi_prefix(zh_prefix: str, en_prefix: str, msg: object) -> str:
+    """给一条说明的中英文两行分别加前缀；单语说明两行都用原文。"""
+    zh, en = bi_parts(msg)
+    return bi(zh_prefix + zh, en_prefix + (zh if en is None else en))
 
 
 # ---------------------------------------------------------------- 精确有理数
@@ -83,12 +103,15 @@ MAX_RATIONAL_CHARS = 400
 def parse_rational(text: object) -> Fraction:
     """只接受 "85"、"-3"、"22/7"、"0.125" 这类写法；不接受指数、空格、下划线、inf/nan。"""
     if not isinstance(text, str):
-        raise ValueError('必须是字符串形式的精确有理数，例如 "85" 或 "22/7"')
+        raise ValueError(bi('必须是字符串形式的精确有理数，例如 "85" 或 "22/7"',
+                              'must be an exact rational number written as a string, e.g. "85" or "22/7"'))
     if len(text) > MAX_RATIONAL_CHARS:
-        raise ValueError(f"有理数字符串超过 {MAX_RATIONAL_CHARS} 个字符")
+        raise ValueError(bi(f"有理数字符串超过 {MAX_RATIONAL_CHARS} 个字符",
+                              f"rational string is longer than {MAX_RATIONAL_CHARS} characters"))
     m = RATIONAL_RE.fullmatch(text)
     if not m:
-        raise ValueError('不是合法的精确有理数（允许 "85"、"-3"、"22/7"、"0.125"）')
+        raise ValueError(bi('不是合法的精确有理数（允许 "85"、"-3"、"22/7"、"0.125"）',
+                              'is not a valid exact rational number (allowed: "85", "-3", "22/7", "0.125")'))
     sign, whole, den, frac = m.groups()
     if den is not None:
         value = Fraction(int(whole), int(den))
@@ -142,22 +165,28 @@ class Problem:
     def direction_zh(self) -> str:
         return "越大越好" if self.direction == "max" else "越小越好"
 
+    @property
+    def direction_en(self) -> str:
+        return "higher is better" if self.direction == "max" else "lower is better"
+
 
 def _cfg_str(d: dict, key: str, *, pattern=None, choices=None, max_len=200) -> str:
     v = d.get(key)
     if not isinstance(v, str) or not v.strip() or len(v) > max_len:
-        raise ConfigError(f"problem.toml: {key} 必须是非空字符串")
+        raise ConfigError(bi(f"problem.toml: {key} 必须是非空字符串", f"problem.toml: {key} must be a non-empty string"))
     if pattern is not None and not pattern.fullmatch(v):
-        raise ConfigError(f"problem.toml: {key} 格式不对")
+        raise ConfigError(bi(f"problem.toml: {key} 格式不对", f"problem.toml: {key} has the wrong format"))
     if choices is not None and v not in choices:
-        raise ConfigError(f"problem.toml: {key} 只能是 {'|'.join(choices)}")
+        raise ConfigError(bi(f"problem.toml: {key} 只能是 {'|'.join(choices)}",
+                               f"problem.toml: {key} must be one of {'|'.join(choices)}"))
     return v
 
 
 def _cfg_int(d: dict, key: str, lo: int, hi: int) -> int:
     v = d.get(key)
     if type(v) is not int or not lo <= v <= hi:
-        raise ConfigError(f"problem.toml: {key} 必须是 {lo}..{hi} 之间的整数")
+        raise ConfigError(bi(f"problem.toml: {key} 必须是 {lo}..{hi} 之间的整数",
+                               f"problem.toml: {key} must be an integer in {lo}..{hi}"))
     return v
 
 
@@ -168,17 +197,19 @@ def load_problem(path: str | os.PathLike) -> Problem:
     sub = d.get("submission", {})
     params = d.get("params", {})
     if not isinstance(sub, dict) or not isinstance(params, dict):
-        raise ConfigError("problem.toml: [submission] 与 [params] 必须是表")
+        raise ConfigError(bi("problem.toml: [submission] 与 [params] 必须是表",
+                               "problem.toml: [submission] and [params] must be tables"))
     try:
         baseline = parse_rational(d.get("baseline_score"))
         epsilon = parse_rational(d.get("epsilon"))
     except ValueError as e:
-        raise ConfigError(f"problem.toml: baseline_score / epsilon {e}") from None
+        raise ConfigError(bi_prefix("problem.toml: baseline_score / epsilon ",
+                                      "problem.toml: baseline_score / epsilon ", e)) from None
     if epsilon <= 0:
-        raise ConfigError("problem.toml: epsilon 必须 > 0")
+        raise ConfigError(bi("problem.toml: epsilon 必须 > 0", "problem.toml: epsilon must be > 0"))
     sandbox = d.get("sandbox", False)
     if type(sandbox) is not bool:
-        raise ConfigError("problem.toml: sandbox 必须是布尔值")
+        raise ConfigError(bi("problem.toml: sandbox 必须是布尔值", "problem.toml: sandbox must be a boolean"))
     p = Problem(
         id=_cfg_str(d, "id", pattern=PROBLEM_ID_RE),
         slug=_cfg_str(d, "slug", pattern=SHOT_ID_RE),
@@ -203,21 +234,23 @@ def load_problem(path: str | os.PathLike) -> Problem:
         params=params,
     )
     if p.progress_transform == "log2" and p.baseline <= 0:
-        raise ConfigError("problem.toml: progress_transform = log2 要求基线 > 0")
+        raise ConfigError(bi("problem.toml: progress_transform = log2 要求基线 > 0",
+                               "problem.toml: progress_transform = log2 requires a baseline > 0"))
     return p
 
 
 def problem_path(root: str | os.PathLike, name: str) -> Path:
     """problems/<name>/ 的路径；name 必须是合规的题目目录名，目录与 problem.toml 都不能是符号链接。"""
     if not isinstance(name, str) or not PROBLEM_DIR_RE.fullmatch(name):
-        raise ConfigError("题目目录名必须形如 p001-slug")
+        raise ConfigError(bi("题目目录名必须形如 p001-slug", "The problem directory name must look like p001-slug"))
     base = Path(root) / PROBLEMS_DIR
     d = base / name
     if base.is_symlink() or d.is_symlink() or not d.is_dir():
-        raise ConfigError(f"main 上没有题目目录 {PROBLEMS_DIR}/{name}")
+        raise ConfigError(bi(f"main 上没有题目目录 {PROBLEMS_DIR}/{name}",
+                               f"There is no problem directory {PROBLEMS_DIR}/{name} on main"))
     toml = d / "problem.toml"
     if toml.is_symlink() or not toml.is_file():
-        raise ConfigError(f"{PROBLEMS_DIR}/{name} 里没有 problem.toml")
+        raise ConfigError(bi(f"{PROBLEMS_DIR}/{name} 里没有 problem.toml", f"{PROBLEMS_DIR}/{name} has no problem.toml"))
     return d
 
 
@@ -226,7 +259,8 @@ def load_problem_dir(root: str | os.PathLike, name: str) -> Problem:
     d = problem_path(root, name)
     p = load_problem(d / "problem.toml")
     if f"{p.id}-{p.slug}" != name:
-        raise ConfigError(f"{PROBLEMS_DIR}/{name}/problem.toml 的 id 与 slug 和目录名不一致")
+        raise ConfigError(bi(f"{PROBLEMS_DIR}/{name}/problem.toml 的 id 与 slug 和目录名不一致",
+                               f"{PROBLEMS_DIR}/{name}/problem.toml: id and slug do not match the directory name"))
     return dataclasses.replace(p, dir=name)
 
 
@@ -293,10 +327,10 @@ def read_bytes_limited(path: str | os.PathLike, limit: int) -> bytes:
     with os.fdopen(fd, "rb") as f:
         st = os.fstat(f.fileno())
         if not stat.S_ISREG(st.st_mode):
-            raise ValueError(f"{Path(path).name} 不是普通文件")
+            raise ValueError(bi(f"{Path(path).name} 不是普通文件", f"{Path(path).name} is not a regular file"))
         data = f.read(limit + 1)
     if len(data) > limit:
-        raise ValueError(f"{Path(path).name} 超过 {limit} 字节")
+        raise ValueError(bi(f"{Path(path).name} 超过 {limit} 字节", f"{Path(path).name} is larger than {limit} bytes"))
     return data
 
 
@@ -354,12 +388,12 @@ def _has_invisible(s: str) -> bool:
 def _meta_str(meta: dict, key: str, max_len: int, errs: list) -> str:
     v = meta.get(key)
     if not isinstance(v, str) or not v.strip():
-        errs.append(f"{key} 必须是非空字符串")
+        errs.append(bi(f"{key} 必须是非空字符串", f"{key} must be a non-empty string"))
         return ""
     if len(v) > max_len:
-        errs.append(f"{key} 不能超过 {max_len} 个字符")
+        errs.append(bi(f"{key} 不能超过 {max_len} 个字符", f"{key} must be at most {max_len} characters"))
     if _has_invisible(v):
-        errs.append(f"{key} 含有控制字符或不可见字符")
+        errs.append(bi(f"{key} 含有控制字符或不可见字符", f"{key} contains control or invisible characters"))
     return v.strip()
 
 
@@ -392,7 +426,7 @@ def split_sections(body: str, first_line: int = 1) -> tuple[dict, list]:
             if m and len(m.group(1)) == 2:
                 name = m.group(2).strip()
                 if name in sections:
-                    errs.append(f"有重复的二级标题（第 {lineno} 行）")
+                    errs.append(bi(f"有重复的二级标题（第 {lineno} 行）", f"Duplicate level-2 heading (line {lineno})"))
                 sections[name] = []
                 current = name
                 continue
@@ -407,70 +441,77 @@ def parse_shot_md(text: str) -> Shot:
         text = text[1:]
     lines = text.split("\n")
     if not lines or lines[0].strip() != "+++":
-        raise ShotError(["SHOT.md 必须以 +++ 包裹的 TOML front matter 开头"])
+        raise ShotError([bi("SHOT.md 必须以 +++ 包裹的 TOML front matter 开头",
+                              "SHOT.md must start with TOML front matter enclosed in +++")])
     end = next((i for i in range(1, len(lines)) if lines[i].strip() == "+++"), None)
     if end is None:
-        raise ShotError(["front matter 缺少结束的 +++"])
+        raise ShotError([bi("front matter 缺少结束的 +++", "The front matter is missing the closing +++")])
     try:
         meta = tomllib.loads("\n".join(lines[1:end]))
     except tomllib.TOMLDecodeError:
-        raise ShotError(["front matter 不是合法的 TOML"]) from None
+        raise ShotError([bi("front matter 不是合法的 TOML", "The front matter is not valid TOML")]) from None
     except (RecursionError, MemoryError):
         # 深层嵌套的数组会让 tomllib 递归溢出
-        raise ShotError(["front matter 嵌套过深或过大"]) from None
+        raise ShotError([bi("front matter 嵌套过深或过大", "The front matter is nested too deeply or too large")]) from None
 
     errs: list = []
     unknown = set(meta) - set(SHOT_FIELDS)
     if unknown:
         # 不回显参与者写的键名
-        errs.append(f"front matter 有 {len(unknown)} 个未知字段（只允许：{', '.join(SHOT_FIELDS)}）")
+        errs.append(bi(f"front matter 有 {len(unknown)} 个未知字段（只允许：{', '.join(SHOT_FIELDS)}）",
+                          f"The front matter has {len(unknown)} unknown field(s) (allowed: {', '.join(SHOT_FIELDS)})"))
     missing = [k for k in SHOT_REQUIRED if k not in meta]
     if missing:
-        errs.append("front matter 缺少字段：" + ", ".join(missing))
+        errs.append(bi("front matter 缺少字段：" + ", ".join(missing),
+                          "The front matter is missing field(s): " + ", ".join(missing)))
 
     login = _meta_str(meta, "login", 39, errs)
     if login and not LOGIN_RE.fullmatch(login):
-        errs.append("login 不是合法的 GitHub 登录名")
+        errs.append(bi("login 不是合法的 GitHub 登录名", "login is not a valid GitHub login"))
     models = meta.get("models", [])
     if not isinstance(models, list) or len(models) > 10:
-        errs.append("models 必须是最多 10 个字符串组成的数组")
+        errs.append(bi("models 必须是最多 10 个字符串组成的数组", "models must be an array of at most 10 strings"))
         models = []
     else:
         for m in models:
             if not isinstance(m, str) or not m.strip() or len(m) > 100 or _has_invisible(m):
-                errs.append("models 中每一项都必须是不超过 100 字符的单行字符串")
+                errs.append(bi("models 中每一项都必须是不超过 100 字符的单行字符串",
+                              "Each item in models must be a single-line string of at most 100 characters"))
                 break
     agent = _opt_str(meta, "agent", 100, errs)
     affiliation = _opt_str(meta, "affiliation", 200, errs)
     tokens = meta.get("tokens_estimate", 0)
     if type(tokens) is not int or not 0 <= tokens <= 10**13:
-        errs.append("tokens_estimate 必须是 0 到 10^13 之间的整数")
+        errs.append(bi("tokens_estimate 必须是 0 到 10^13 之间的整数",
+                          "tokens_estimate must be an integer from 0 to 10^13"))
         tokens = 0
     builds_on = meta.get("builds_on")
     if not isinstance(builds_on, list) or len(builds_on) > 20:
-        errs.append('builds_on 必须是数组（最多 20 项），每项形如 "login/shot-id"；没有就写 []')
+        errs.append(bi('builds_on 必须是数组（最多 20 项），每项形如 "login/shot-id"；没有就写 []',
+                          'builds_on must be an array of at most 20 items like "login/shot-id"; write [] if none'))
         builds_on = []
     elif not all(isinstance(b, str) and SHOT_REF_RE.fullmatch(b) for b in builds_on):
-        errs.append('builds_on 的每一项都必须形如 "login/shot-id"')
+        errs.append(bi('builds_on 的每一项都必须形如 "login/shot-id"',
+                          'Each item in builds_on must look like "login/shot-id"'))
     claimed_text = meta.get("claimed_score")
     claimed = Fraction(0)
     try:
         claimed = parse_rational(claimed_text)
     except ValueError as e:
-        errs.append(f"claimed_score {e}")
+        errs.append(bi_prefix("claimed_score ", "claimed_score ", e))
 
     sections, sec_errs = split_sections("\n".join(lines[end + 1:]), first_line=end + 2)
     errs.extend(sec_errs)
     for name in (SECTION_IDEA, SECTION_DEAD_ENDS):
         alias = SECTION_ALIASES[name]
         if name in sections and alias in sections:
-            errs.append(f"「## {name}」和「## {alias}」只能写一个 / use either ## {name} or ## {alias}, not both")
+            errs.append(bi(f"「## {name}」和「## {alias}」只能写一个", f"Use either ## {name} or ## {alias}, not both"))
         elif alias in sections:
             sections[name] = sections.pop(alias)
         if name not in sections:
-            errs.append(f"正文缺少二级标题「## {name}」或「## {alias}」 / missing section ## {alias}")
+            errs.append(bi(f"正文缺少二级标题「## {name}」或「## {alias}」", f"Missing section ## {alias} (or ## {name})"))
         elif not sections[name]:
-            errs.append(f"「## {name}」不能为空 / ## {alias} must not be empty")
+            errs.append(bi(f"「## {name}」不能为空", f"## {alias} must not be empty"))
     if errs:
         raise ShotError(errs)
     return Shot(
@@ -488,6 +529,7 @@ def parse_shot_md(text: str) -> Shot:
 
 
 SHOT_DIR_HINT = f"{PROBLEMS_DIR}/<题目目录>/shots/<login>/<shot-id>/"
+SHOT_DIR_HINT_EN = f"{PROBLEMS_DIR}/<problem-dir>/shots/<login>/<shot-id>/"
 
 
 def locate_shot_dir(shot_dir: str | os.PathLike, root: str | os.PathLike = REPO_ROOT) -> tuple[str, str, str]:
@@ -499,7 +541,8 @@ def locate_shot_dir(shot_dir: str | os.PathLike, root: str | os.PathLike = REPO_
     except ValueError:
         parts = ()
     if len(parts) != 5 or parts[0] != PROBLEMS_DIR or parts[2] != "shots":
-        raise ShotError([f"shot 目录必须位于本仓库的 {SHOT_DIR_HINT}"])
+        raise ShotError([bi(f"shot 目录必须位于本仓库的 {SHOT_DIR_HINT}",
+                              f"The shot directory must be {SHOT_DIR_HINT_EN} in this repository")])
     return parts[1], parts[3], parts[4]
 
 
@@ -510,37 +553,43 @@ def check_local_shot_dir(shot_dir: str | os.PathLike, problem: Problem) -> tuple
     errs: list = []
     shot_id, login = shot_dir.name, shot_dir.parent.name
     if not LOGIN_RE.fullmatch(login):
-        errs.append("目录中的 login 不是合法的 GitHub 登录名")
+        errs.append(bi("目录中的 login 不是合法的 GitHub 登录名", "The login in the path is not a valid GitHub login"))
     if not SHOT_ID_RE.fullmatch(shot_id):
-        errs.append("shot-id 只能用小写字母、数字和连字符，不超过 64 个字符")
+        errs.append(bi("shot-id 只能用小写字母、数字和连字符，不超过 64 个字符",
+                          "shot-id may only use lowercase letters, digits and hyphens, at most 64 characters"))
     if shot_dir.is_symlink() or not shot_dir.is_dir():
-        raise ShotError(errs + ["shot 目录不存在或是符号链接"])
+        raise ShotError(errs + [bi("shot 目录不存在或是符号链接", "The shot directory does not exist or is a symlink")])
     entries = sorted(os.scandir(shot_dir), key=lambda e: e.name)
     if len(entries) > problem.max_files:
-        errs.append(f"文件数 {len(entries)} 超过上限 {problem.max_files}")
+        errs.append(bi(f"文件数 {len(entries)} 超过上限 {problem.max_files}",
+                          f"{len(entries)} files, more than the limit of {problem.max_files}"))
     names, total = [], 0
     for e in entries:
-        shown = e.name if FILE_NAME_RE.fullmatch(e.name) else "（不合规的文件名）"
+        shown = e.name if FILE_NAME_RE.fullmatch(e.name) else "（不合规的文件名 · invalid file name）"
         if e.is_symlink():
-            errs.append(f"{shown} 是符号链接，不允许")
+            errs.append(bi(f"{shown} 是符号链接，不允许", f"{shown} is a symlink, which is not allowed"))
         elif e.is_dir(follow_symlinks=False):
-            errs.append(f"{shown} 是子目录，不允许")
+            errs.append(bi(f"{shown} 是子目录，不允许", f"{shown} is a subdirectory, which is not allowed"))
         elif not e.is_file(follow_symlinks=False):
-            errs.append(f"{shown} 不是普通文件")
+            errs.append(bi(f"{shown} 不是普通文件", f"{shown} is not a regular file"))
         elif not FILE_NAME_RE.fullmatch(e.name):
-            errs.append("文件名不合规：只允许字母数字开头的 .md/.json/.txt/.csv，不允许隐藏文件")
+            errs.append(bi("文件名不合规：只允许字母数字开头的 .md/.json/.txt/.csv，不允许隐藏文件",
+                           "Invalid file name: only .md/.json/.txt/.csv names that start with a letter or digit; "
+                           "no hidden files"))
         else:
             size = e.stat(follow_symlinks=False).st_size
             limit = problem.file_limit(e.name)
             if size > limit:
-                errs.append(f"{e.name} 有 {size} 字节，超过上限 {limit}")
+                errs.append(bi(f"{e.name} 有 {size} 字节，超过上限 {limit}",
+                               f"{e.name} is {size} bytes, over the limit of {limit}"))
             total += size
             names.append(e.name)
     if total > problem.max_total_bytes:
-        errs.append(f"总大小 {total} 字节，超过上限 {problem.max_total_bytes}")
+        errs.append(bi(f"总大小 {total} 字节，超过上限 {problem.max_total_bytes}",
+                       f"Total size is {total} bytes, over the limit of {problem.max_total_bytes}"))
     for req in REQUIRED_FILES:
         if req not in names:
-            errs.append(f"缺少 {req}")
+            errs.append(bi(f"缺少 {req}", f"Missing {req}"))
     if errs:
         raise ShotError(errs)
     return login, shot_id, names
@@ -650,10 +699,10 @@ def list_merged_shots(root: str | os.PathLike, pdir: str, ref: str = "HEAD",
 # ---------------------------------------------------------------- 纪录与判定
 
 VERDICT_TEXT = {
-    "below_baseline": "未达到预设基线",
-    "not_record": "达到预设基线，但没有刷新当前纪录",
-    "below_epsilon": "刷新了当前纪录，但改进幅度不足 ε",
-    "breakthrough": "有效突破",
+    "below_baseline": "未达到预设基线 · Below the baseline",
+    "not_record": "达到预设基线，但没有刷新当前纪录 · Reaches the baseline but does not beat the current record",
+    "below_epsilon": "刷新了当前纪录，但改进幅度不足 ε · Beats the current record by less than ε",
+    "breakthrough": "有效突破 · Valid breakthrough",
 }
 
 
@@ -695,16 +744,21 @@ def verify_merged(merged: list, run_verifier: Callable[[Path], dict]) -> tuple[l
     warnings: list = []
     for m in merged:
         if m.shot is None or m.path is None:
-            warnings.append(f"main 上的 {m.ref} 的 SHOT.md 无法解析，未计入纪录")
+            warnings.append(bi(f"main 上的 {m.ref} 的 SHOT.md 无法解析，未计入纪录",
+                               f"{m.ref} on main: SHOT.md cannot be parsed; not counted toward the record"))
             continue
         try:
             v = run_verifier(m.path)
         except VerifierRejected:
-            raise VerifierError(f"复算 main 上的 {m.ref} 时超时或超出资源限制") from None
+            raise VerifierError(bi(f"复算 main 上的 {m.ref} 时超时或超出资源限制",
+                                     f"Re-verifying {m.ref} on main timed out or exceeded resource limits")) from None
         if not v["valid"]:
-            warnings.append(f"main 上的 {m.ref} 复算无效，未计入纪录")
+            warnings.append(bi(f"main 上的 {m.ref} 复算无效，未计入纪录",
+                               f"{m.ref} on main is invalid when re-verified; not counted toward the record"))
         elif v["score"] != m.shot.claimed_score:
-            warnings.append(f"main 上的 {m.ref} 的 claimed_score 与复算结果不一致，未计入纪录")
+            warnings.append(bi(f"main 上的 {m.ref} 的 claimed_score 与复算结果不一致，未计入纪录",
+                               f"{m.ref} on main: claimed_score differs from the re-verified score; "
+                               "not counted toward the record"))
         else:
             entries.append(ChainEntry(m.ref, v["score"], v["canonical_hash"]))
     return entries, warnings
@@ -764,32 +818,34 @@ def _reject_constant(_s):
 
 def parse_verifier_output(raw: bytes) -> dict:
     if len(raw) > MAX_VERIFIER_OUTPUT:
-        raise VerifierError("验证器输出过长")
+        raise VerifierError(bi("验证器输出过长", "The verifier output is too long"))
     try:
         text = raw.decode("utf-8")
     except UnicodeDecodeError:
-        raise VerifierError("验证器输出不是 UTF-8") from None
+        raise VerifierError(bi("验证器输出不是 UTF-8", "The verifier output is not UTF-8")) from None
     lines = [ln for ln in text.splitlines() if ln.strip()]
     if len(lines) != 1:
-        raise VerifierError("验证器必须且只能输出一行 JSON")
+        raise VerifierError(bi("验证器必须且只能输出一行 JSON", "The verifier must print exactly one line of JSON"))
     try:
         obj = json.loads(lines[0], parse_constant=_reject_constant)
     except ValueError:
-        raise VerifierError("验证器输出不是合法 JSON") from None
+        raise VerifierError(bi("验证器输出不是合法 JSON", "The verifier output is not valid JSON")) from None
     if not isinstance(obj, dict) or set(obj) != VERIFIER_KEYS:
-        raise VerifierError("验证器输出的字段不符合契约")
+        raise VerifierError(bi("验证器输出的字段不符合契约", "The verifier output fields do not match the contract"))
     if type(obj["valid"]) is not bool or not isinstance(obj["message"], str):
-        raise VerifierError("验证器输出的字段类型不符合契约")
+        raise VerifierError(bi("验证器输出的字段类型不符合契约",
+                                 "The verifier output field types do not match the contract"))
     message = obj["message"][:500]
     if not obj["valid"]:
         return {"valid": False, "score": None, "canonical_hash": None, "message": message}
     try:
         score = parse_rational(obj["score"])
     except ValueError:
-        raise VerifierError("验证器给出的 score 不是精确有理数字符串") from None
+        raise VerifierError(bi("验证器给出的 score 不是精确有理数字符串",
+                                 "The verifier score is not an exact rational string")) from None
     h = obj["canonical_hash"]
     if not isinstance(h, str) or not HASH_RE.fullmatch(h):
-        raise VerifierError("验证器给出的 canonical_hash 不是 sha256")
+        raise VerifierError(bi("验证器给出的 canonical_hash 不是 sha256", "The verifier canonical_hash is not a sha256"))
     return {"valid": True, "score": score, "canonical_hash": h, "message": message}
 
 
@@ -804,9 +860,9 @@ def run_verifier_local(shot_dir: str | os.PathLike, timeout: int, verify_py: str
             capture_output=True, timeout=timeout, env=env, cwd=str(verify_py.parent),
         )
     except subprocess.TimeoutExpired:
-        raise VerifierRejected(f"验证超时（{timeout} 秒）") from None
+        raise VerifierRejected(bi(f"验证超时（{timeout} 秒）", f"Verification timed out ({timeout} s)")) from None
     if proc.returncode != 0:
-        raise VerifierError(f"验证器退出码 {proc.returncode}")
+        raise VerifierError(bi(f"验证器退出码 {proc.returncode}", f"Verifier exit code {proc.returncode}"))
     return parse_verifier_output(proc.stdout)
 
 
@@ -821,14 +877,16 @@ def evaluate_shot(problem: Problem, shot_dir: Path, expected_login: str,
         text = read_bytes_limited(shot_dir / "SHOT.md", problem.max_shot_md_bytes).decode("utf-8")
         shot = parse_shot_md(text)
     except ShotError as e:
-        out.update(status="rejected", messages=["SHOT.md：" + m for m in e.messages])
+        out.update(status="rejected", messages=[bi_prefix("SHOT.md：", "SHOT.md: ", m) for m in e.messages])
         return out
     except (OSError, ValueError):
-        out.update(status="rejected", messages=["无法读取 SHOT.md（必须是不超过上限的 UTF-8 文本）"])
+        out.update(status="rejected", messages=[bi("无法读取 SHOT.md（必须是不超过上限的 UTF-8 文本）",
+                                                     "Cannot read SHOT.md (it must be UTF-8 text within the size limit)")])
         return out
     out["claimed_score"] = fmt(shot.claimed_score)
     if shot.login != expected_login:
-        out.update(status="rejected", messages=["SHOT.md 中的 login 必须与目录名（PR 作者）一致"])
+        out.update(status="rejected", messages=[bi("SHOT.md 中的 login 必须与目录名（PR 作者）一致",
+                                                     "login in SHOT.md must match the directory name (the PR author)")])
         return out
     try:
         v = run_verifier(shot_dir)
@@ -836,11 +894,12 @@ def evaluate_shot(problem: Problem, shot_dir: Path, expected_login: str,
         out.update(status="invalid", messages=[str(e)])
         return out
     except VerifierError as e:
-        out.update(status="error", messages=[f"验证器运行失败：{e}"])
+        out.update(status="error", messages=[bi_prefix("验证器运行失败：", "The verifier failed: ", e)])
         return out
     out["verifier_message"] = v["message"]
     if not v["valid"]:
-        out.update(status="invalid", messages=[f"验证器：{v['message']}"])
+        # 验证器的说明只占一行，前面标上中英文
+        out.update(status="invalid", messages=["验证器 · Verifier：" + " ".join(v["message"].split())])
         return out
     score = v["score"]
     out.update(score=fmt(score), canonical_hash=v["canonical_hash"],
@@ -848,7 +907,8 @@ def evaluate_shot(problem: Problem, shot_dir: Path, expected_login: str,
     try:
         chain, warnings = verify_merged(merged, run_verifier)
     except VerifierError as e:
-        out.update(status="error", messages=[f"复算 main 上的纪录链失败：{e}"])
+        out.update(status="error", messages=[bi_prefix("复算 main 上的纪录链失败：",
+                                                        "Re-verifying the record chain on main failed: ", e)])
         return out
     out["chain_warnings"] = warnings
     rec = current_record(problem, chain)
@@ -856,11 +916,14 @@ def evaluate_shot(problem: Problem, shot_dir: Path, expected_login: str,
                required=fmt(required_score(problem, rec.score)))
     if shot.claimed_score != score:
         out.update(status="claim_mismatch",
-                   messages=["claimed_score 与验证器结果不一致，请改成验证器给出的值"])
+                   messages=[bi("claimed_score 与验证器结果不一致，请改成验证器给出的值",
+                                 "claimed_score differs from the verifier's score; set it to the value the verifier gives")])
         return out
     same = next((e.ref for e in chain if e.canonical_hash == v["canonical_hash"]), None)
     if same is not None:
-        out.update(status="duplicate", messages=[f"证书与 main 上的 {same} 本质相同（canonical_hash 相同）"])
+        out.update(status="duplicate", messages=[bi(f"证书与 main 上的 {same} 本质相同（canonical_hash 相同）",
+                                                      f"The certificate is essentially the same as {same} on main "
+                                                      "(same canonical_hash)")])
         return out
     out["status"] = judge(problem, rec.score, score)
     out["messages"] = [VERDICT_TEXT[out["status"]]]
@@ -916,16 +979,16 @@ def sanitize_text(text: str, limit: int = 800, line_limit: int = 300) -> str:
     text = unicodedata.normalize("NFC", text.replace("\r\n", "\n").replace("\r", "\n"))
     text = strip_invisible(text)
     text = _HTML_COMMENT_RE.sub("", text)
-    text = _FENCE_RE.sub("[代码块已移除]\n", text)
-    text = _INDENTED_CODE_RE.sub("[代码块已移除]\n", text)
-    text = _INLINE_CODE_RE.sub("[代码已移除]", text)
+    text = _FENCE_RE.sub("[代码块已移除 · code block removed]\n", text)
+    text = _INDENTED_CODE_RE.sub("[代码块已移除 · code block removed]\n", text)
+    text = _INLINE_CODE_RE.sub("[代码已移除 · code removed]", text)
     text = _IMAGE_RE.sub("", text)
     text = _LINK_RE.sub(r"\1", text)
     text = _REF_LINK_RE.sub(r"\1", text)
     text = _REF_DEF_RE.sub("", text)
     text = _SCRIPT_RE.sub("", text)
     text = _TAG_RE.sub("", text)
-    text = _URL_RE.sub("[链接已移除]", text)
+    text = _URL_RE.sub("[链接已移除 · link removed]", text)
     text = _HR_RE.sub("", text)
     lines = []
     for line in text.split("\n"):
@@ -936,7 +999,7 @@ def sanitize_text(text: str, limit: int = 800, line_limit: int = 300) -> str:
         lines.append(line)
     text = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
     if len(text) > limit:
-        text = text[:limit].rstrip() + "…（已截断）"
+        text = text[:limit].rstrip() + "…（已截断 · truncated）"
     return text
 
 
@@ -959,7 +1022,7 @@ def sanitize_message(text: object, limit: int = 300) -> str:
     """评论里的说明文字：在 sanitize_inline 之外再去掉链接，并让 #编号、owner/repo#N、GH-N 引用失效，
     转义 ~ 与 _，避免以机器人的名义发出可点击链接、交叉引用或格式。"""
     s = sanitize_inline(text, 4 * limit)
-    s = _URL_RE.sub("[链接已移除]", s)
+    s = _URL_RE.sub("[链接已移除 · link removed]", s)
     s = s.replace("#", "＃").replace("~", "～")
     s = _GH_REF_RE.sub("GH－", s)
     if len(s) > limit:

@@ -179,7 +179,8 @@ class RenderTest(unittest.TestCase):
         self.assertNotRegex(md, r"20[0-9]{2}-[01][0-9]-[0-3][0-9]")  # 表格里不写日期
 
     def test_table_columns(self):
-        self.assertEqual(bb.TABLE_HEAD[0], "| 题目 | 指标 | 预设基线 | 当前纪录 | 纪录保持者 | 有效突破 | 进度 |")
+        self.assertEqual(bb.TABLE_HEAD[0], "| 题目 · Problem | 指标 · Metric | 预设基线 · Baseline | 当前纪录 · Record "
+                                           "| 纪录保持者 · Holder | 有效突破 · Breakthroughs | 进度 · Progress |")
 
     def test_replace_region(self):
         readme = "前\n<!-- board:start -->\n旧\n<!-- board:end -->\n后\n"

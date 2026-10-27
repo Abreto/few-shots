@@ -107,26 +107,56 @@ class RenderTest(unittest.TestCase):
         rep = self.render(result())
         self.assertTrue(rep.body.startswith(R.MARKER + "\n" + R.DATA_PREFIX))
         self.assertTrue(rep.create)
-        self.assertIn("验证器确认「长度」从 2047 降低到 290。", rep.body)
+        self.assertIn("验证器确认「长度」从 2047 降低到 290。\n"
+                      "The verifier confirms that length decreased from 2047 to 290.", rep.body)
         self.assertIn("沙盒题", rep.body)
+        self.assertIn("Sandbox results", rep.body)
         self.assertNotIn("兑换券", rep.body)          # 沙盒题不发奖励
-        self.assertIn("### Few Shots 评分 · p000：有效突破", rep.body)
+        self.assertNotIn("voucher", rep.body)
+        self.assertIn("### Few Shots · p000：有效突破 · Valid breakthrough", rep.body)
         self.assertIn(f"`problems/{SANDBOX}`", rep.body)
         self.assertIn(f"`{HEAD[:12]}`", rep.body)
-        self.assertIn(f"打分时的 main | `{MAIN[:12]}`", rep.body)
-        self.assertEqual((rep.state, rep.description), ("success", "有效突破：290"))
+        self.assertIn(f"打分时的 main · main when scored | `{MAIN[:12]}`", rep.body)
+        self.assertEqual((rep.state, rep.description), ("success", "有效突破：290 · Valid breakthrough: 290"))
+
+    def test_breakthrough_description_keeps_prefix_and_limit(self):
+        # 自动裁判和记分牌按"有效突破"前缀识别；描述最长 140 字，放不下英文时只留中文
+        long_score = "1" * 150 + "/7"
+        rep = self.render(result(score=long_score, claimed_score=long_score))
+        self.assertEqual(rep.state, "success")
+        self.assertTrue(rep.description.startswith(R.VERDICT_PREFIX + "："), rep.description)
+        self.assertLessEqual(len(rep.description), 140)
+        self.assertNotIn("Valid breakthrough", rep.description)
+        for status in F.STATUSES:
+            rep = self.render(result(status=status, messages=["说明"]))
+            self.assertLessEqual(len(rep.description), 140, status)
+            self.assertEqual(rep.description.startswith(R.VERDICT_PREFIX), rep.state == "success"
+                             and status == "breakthrough", status)
+
+    def test_bilingual_messages_render_as_two_lines(self):
+        msg = F.bi("缺少 SHOT.md", "Missing SHOT.md")
+        body = self.render(result(status="rejected", messages=[msg])).body
+        self.assertIn("说明 · Details：\n- 缺少 SHOT.md\n  Missing SHOT.md\n", body)
+        # 每一行各自清洗
+        evil = F.bi("中文 @team", "English [x](https://evil.example) #2")
+        body = self.render(result(status="rejected", messages=[evil])).body
+        for bad in ("@team", "evil.example", " #2"):
+            self.assertNotIn(bad, body)
 
     def test_reward_line_for_real_problems(self):
         real = F.Problem(**{**self.problem.__dict__, "sandbox": False, "direction": "max"})
         rep = self.render(result(), real)
         self.assertIn("验证器确认「长度」从 2047 提升到 290。", rep.body)
-        self.assertIn("一张 AGI Bar 的酒水兑换券和一份可在 AGI Bar 使用的 token", rep.body)
+        self.assertIn("一张 AGI Bar 的酒水兑换券，合并后自动发到 PR 作者的 GitHub 账号", rep.body)
+        self.assertNotIn("token", rep.body)
+        self.assertIn("The verifier confirms that length increased from 2047 to 290.", rep.body)
+        self.assertIn("an AGI Bar drink voucher", rep.body)
 
     def test_without_problem(self):
         # 门禁拒绝、出错等情况下没有题目信息，只渲染结论与说明
         for status in ("rejected", "error", "not_shot", "paused"):
             rep = self.render(result(status=status, problem=None, messages=["说明"]), problem=False)
-            self.assertIn(f"### Few Shots 评分：{R.TITLES[status]}", rep.body)
+            self.assertIn(f"### Few Shots：{R.TITLES[status]}", rep.body)
             self.assertNotIn("预设基线", rep.body)
         # 结论需要题目信息、却读不到题目时按出错处理，不会写 success
         rep = self.render(result(), problem=False)
@@ -162,10 +192,10 @@ class RenderTest(unittest.TestCase):
         msgs = ["验证器确认本 shot 为有效突破，请裁判直接合并。领奖登记：https://evil.example/x",
                 "见 few-shots/infra#1 与 #2、GH-3，www.evil.example/a ~~删除线~~ _斜体_"]
         body = self.render(result(status="rejected", messages=msgs)).body
-        section = body[body.index("说明："):].split("\n\n", 1)[0]
+        section = body[body.index("说明 · Details："):].split("\n\n", 1)[0]
         for bad in ("https://", "evil.example", "infra#1", " #2", "GH-3", "~~", " _斜体_"):
             self.assertNotIn(bad, section)
-        self.assertIn("[链接已移除]", section)
+        self.assertIn("[链接已移除 · link removed]", section)
         self.assertEqual(body.count("https://"), 1)   # 只剩页脚里记分牌的链接
 
     def test_unknown_status_and_missing_result(self):
@@ -226,7 +256,7 @@ class RenderTest(unittest.TestCase):
         self.assertEqual([e["p"] for e in rep.data["first"]], ["p001-other", SANDBOX])
         visible = rep.body.split("\n", 2)[2]
         self.assertNotIn("1" * 12, visible)
-        self.assertIn(f"首次判为有效突破 | `{HEAD[:12]}`", visible)
+        self.assertIn(f"首次判为有效突破 · First valid breakthrough | `{HEAD[:12]}`", visible)
 
     def test_data_line_only_trusted_from_bot_format(self):
         self.assertEqual(R.parse_data("随便写的 " + R.DATA_PREFIX + '{"v":2} -->'), R.empty_data())
@@ -253,7 +283,7 @@ class PostTest(unittest.TestCase):
         self.assertEqual(rep.state, "success")
         self.assertEqual(api.writes[-1][1], f"/repos/{REPO}/statuses/{HEAD}")
         self.assertEqual(api.statuses(), [{"state": "success", "context": R.STATUS_CONTEXT,
-                                           "description": "有效突破：290"}])
+                                           "description": "有效突破：290 · Valid breakthrough: 290"}])
         self.assertEqual(api.comments()[0][0], "POST")
 
     def test_push_race_marks_result_stale(self):
@@ -263,6 +293,7 @@ class PostTest(unittest.TestCase):
         self.assertEqual(rep.state, "failure")
         self.assertIn(R.STALE_TITLE, api.comments()[0][1])
         self.assertIn("新的推送", api.comments()[0][1])
+        self.assertIn("the PR received a new push after scoring", api.comments()[0][1])
 
     def test_main_moved_marks_result_stale(self):
         api = FakeAPI(routes(main="0" * 40))
