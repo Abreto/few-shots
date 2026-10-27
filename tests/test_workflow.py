@@ -257,18 +257,25 @@ class DocsTest(unittest.TestCase):
         self.assertEqual(text.count("<!-- board:start -->"), 1)
         self.assertEqual(text.count("<!-- board:end -->"), 1)
         self.assertLess(text.index("<!-- intro:start -->"), text.index("## 怎么看这个仓库"))
-        nav = text.split("## 怎么看这个仓库 / Navigating\n", 1)[1].split("\n## ", 1)[0]
+        intro = text.split("<!-- intro:start -->", 1)[1].split("<!-- intro:end -->", 1)[0]
+        paras = [p for p in intro.strip().split("\n\n") if not p.startswith("网站")]
+        self.assertEqual(len(paras) % 2, 0)                                   # 每段中文后面紧跟一段英文
+        for zh, en in zip(paras[::2], paras[1::2]):
+            self.assertRegex(zh, r"[\u4e00-\u9fff]")
+            self.assertNotRegex(en, r"[\u4e00-\u9fff]")
+        nav = text.split("## 怎么看这个仓库 · Navigating\n", 1)[1].split("\n## ", 1)[0]
         lines = [ln for ln in nav.splitlines() if ln.startswith("- ")]
-        targets = ["AGENTS.md", "#纪录", "problems", "data/board.json", "RULES.md", "CONTRIBUTING.md",
+        targets = ["AGENTS.md", "#纪录--records", "problems", "data/board.json", "RULES.md", "CONTRIBUTING.md",
                    "https://github.com/few-shots/few-shots/issues/new/choose"]
         self.assertEqual([re.search(r"\]\(([^)]+)\)", ln).group(1) for ln in lines], targets)
-        rules = text.split("## 规则\n", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("\n## 纪录 · Records\n", text)
+        rules = text.split("## 规则 · Rules\n", 1)[1].split("\n## ", 1)[0]
         items = self.numbered(rules)
         self.assertEqual(len(items), 5)
         for key, item in zip(self.RULE_KEYS, items):
             self.assertIn(key, item)
-        self.assertIn("## English", text)
-        self.assertLess(text.index("<!-- board:end -->"), text.index("## English"))
+        self.assertEqual(rules.count("\n   "), 5)                             # 每条规则下面一行英文
+        self.assertNotIn("## English", text)
 
     def test_relative_links_resolve(self):
         for name in ("README.md", "AGENTS.md", "RULES.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md",

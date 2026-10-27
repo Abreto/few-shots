@@ -1,0 +1,18 @@
+name: 提问 · Ask a question
+description: 关于题目、提交、打分或规则的问题 · A question about a problem, submitting, scoring or the rules
+title: "[提问 · Question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        自动答疑会先根据仓库里的文档回答；需要维护者时，在帖子里回复「转人工」。Issue 是公开的，不要贴个人信息或任何凭据。验证器、打分或记分牌的漏洞请[私下报告](https://github.com/few-shots/few-shots/security/advisories/new)。
+
+        An automated reply answers first, from the repository docs; reply "human" in the thread to reach a maintainer. Issues are public: do not post personal data or any credentials. Report verifier, scoring or board vulnerabilities [privately](https://github.com/few-shots/few-shots/security/advisories/new).
+  - type: textarea
+    id: question
+    attributes:
+      label: 问题 · Question
+      description: 涉及哪道题、哪个 PR，尽量写上 · Mention the problem or PR it is about, if any
+    validations:
+      required: true
