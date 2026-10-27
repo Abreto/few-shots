@@ -8,6 +8,7 @@ control.toml 示例：
 总是用 GitHub API 的 contents 接口按 ref=main 读取（不读工作区里的文件，也不经 raw 地址约 5 分钟的 CDN 缓存），
 所以 PR 分支和 checkout 的版本都影响不了它。
 读不到、解析失败或格式不对时按"已暂停"处理（宁可不打分，也不在失控时打分）。
+程序自己给出的暂停原因是中文一行、英文一行（fslib.bi）；裁判在 reason 里写的文字原样展示。
 
 用法：python3 -I scripts/control.py --out work/control.json
 输出：work/control.json；向 $GITHUB_OUTPUT 写 paused=true|false。
@@ -42,10 +43,11 @@ def parse_control(data: bytes) -> dict:
     try:
         d = tomllib.loads(data.decode("utf-8"))
     except (UnicodeDecodeError, tomllib.TOMLDecodeError, RecursionError, MemoryError):
-        return _paused("暂停开关文件无法解析，按暂停处理")
+        return _paused(F.bi("暂停开关文件无法解析，按暂停处理", "The pause switch file cannot be parsed; treated as paused"))
     paused = d.get("paused")
     if type(paused) is not bool:
-        return _paused("暂停开关缺少布尔值 paused，按暂停处理")
+        return _paused(F.bi("暂停开关缺少布尔值 paused，按暂停处理",
+                            "The pause switch has no boolean paused; treated as paused"))
     reason = d.get("reason", "")
     reason = F.sanitize_inline(reason, 200) if isinstance(reason, str) else ""
     return {"paused": paused, "reason": reason}
@@ -70,16 +72,18 @@ def fetch_control(api: F.GitHubAPI | None = None) -> dict:
                 raise
             obj = _read_only_api(None).get(CONTROL_API_PATH, {"ref": CONTROL_REF})
     except Exception:
-        return _paused("无法读取暂停开关，按暂停处理")
+        return _paused(F.bi("无法读取暂停开关，按暂停处理", "Cannot read the pause switch; treated as paused"))
     if not isinstance(obj, dict) or obj.get("type") != "file" or obj.get("encoding") != "base64" \
             or not isinstance(obj.get("content"), str):
-        return _paused("暂停开关的读取结果格式异常，按暂停处理")
+        return _paused(F.bi("暂停开关的读取结果格式异常，按暂停处理",
+                            "The pause switch response is malformed; treated as paused"))
     try:
         data = base64.b64decode(obj["content"].encode("ascii"), validate=False)
     except (ValueError, binascii.Error, UnicodeEncodeError):
-        return _paused("暂停开关的读取结果格式异常，按暂停处理")
+        return _paused(F.bi("暂停开关的读取结果格式异常，按暂停处理",
+                            "The pause switch response is malformed; treated as paused"))
     if len(data) > MAX_BYTES:
-        return _paused("暂停开关文件过大，按暂停处理")
+        return _paused(F.bi("暂停开关文件过大，按暂停处理", "The pause switch file is too large; treated as paused"))
     return parse_control(data)
 
 

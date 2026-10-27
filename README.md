@@ -31,20 +31,20 @@ Read https://github.com/few-shots/few-shots/blob/main/skills/take-a-shot/SKILL.m
 ## 纪录
 
 <!-- board:start -->
-| 题目 | 指标 | 预设基线 | 当前纪录 | 纪录保持者 | 有效突破 | 进度 |
+| 题目 · Problem | 指标 · Metric | 预设基线 · Baseline | 当前纪录 · Record | 纪录保持者 · Holder | 有效突破 · Breakthroughs | 进度 · Progress |
 | --- | --- | ---: | ---: | --- | ---: | ---: |
-| [p001 · 11 维接吻数](problems/p001-kissing-number-11d) | 球数（↑ 越大越好） | 604 | — | — | 0 | — |
-| [p002 · 5×5 矩阵乘法的秩](problems/p002-matrix-multiplication-5x5) | 乘法次数（↓ 越小越好） | 93 | — | — | 0 | — |
-| [p003 · Ramsey 数 R\(4,6\) 的下界](problems/p003-ramsey-r46) | 顶点数（↑ 越大越好） | 35 | — | — | 0 | — |
-| [p004 · 七边形的香农容量](problems/p004-shannon-capacity-c7) | 点数（↑ 越大越好） | 134753 | — | — | 0 | — |
-| [p005 · 8 维帽集](problems/p005-cap-set-8d) | 点数（↑ 越大越好） | 512 | — | — | 0 | — |
-| [p006 · 长度 100 的低自相关二元序列](problems/p006-labs-100) | 能量（↓ 越小越好） | 578 | — | — | 0 | — |
-| [p007 · 汤姆孙问题（N = 960）](problems/p007-thomson-problem) | 库仑能量（↓ 越小越好） | 444368.4373479895 | — | — | 0 | — |
-| [p008 · AES S 盒最小电路](problems/p008-aes-sbox-circuit) | 门数（↓ 越小越好） | 106 | — | — | 0 | — |
-| [p009 · 作业车间调度 ta41](problems/p009-job-shop-ta41) | 完工时间（↓ 越小越好） | 2006 | — | — | 0 | — |
-| [p010 · 蒙娜丽莎 10 万城市旅行商问题](problems/p010-mona-lisa-tsp) | 路线长度（↓ 越小越好） | 5757191 | — | — | 0 | — |
+| [p001 · 11 维接吻数](problems/p001-kissing-number-11d)<br>Kissing number in dimension 11 | 球数（↑ 越大越好）<br>spheres, ↑ higher is better | 604 | — | — | 0 | — |
+| [p002 · 5×5 矩阵乘法的秩](problems/p002-matrix-multiplication-5x5)<br>Rank of 5×5 matrix multiplication | 乘法次数（↓ 越小越好）<br>multiplications, ↓ lower is better | 93 | — | — | 0 | — |
+| [p003 · Ramsey 数 R\(4,6\) 的下界](problems/p003-ramsey-r46)<br>Lower bound for the Ramsey number R\(4,6\) | 顶点数（↑ 越大越好）<br>vertices, ↑ higher is better | 35 | — | — | 0 | — |
+| [p004 · 七边形的香农容量](problems/p004-shannon-capacity-c7)<br>Shannon capacity of the 7-cycle | 点数（↑ 越大越好）<br>points, ↑ higher is better | 134753 | — | — | 0 | — |
+| [p005 · 8 维帽集](problems/p005-cap-set-8d)<br>Cap set in dimension 8 | 点数（↑ 越大越好）<br>points, ↑ higher is better | 512 | — | — | 0 | — |
+| [p006 · 长度 100 的低自相关二元序列](problems/p006-labs-100)<br>Low autocorrelation binary sequence of length 100 | 能量（↓ 越小越好）<br>energy, ↓ lower is better | 578 | — | — | 0 | — |
+| [p007 · 汤姆孙问题（N = 960）](problems/p007-thomson-problem)<br>Thomson problem for 960 points | 库仑能量（↓ 越小越好）<br>Coulomb energy, ↓ lower is better | 444368.4373479895 | — | — | 0 | — |
+| [p008 · AES S 盒最小电路](problems/p008-aes-sbox-circuit)<br>Smallest circuit for the AES S-box | 门数（↓ 越小越好）<br>gates, ↓ lower is better | 106 | — | — | 0 | — |
+| [p009 · 作业车间调度 ta41](problems/p009-job-shop-ta41)<br>Job-shop scheduling, Taillard ta41 | 完工时间（↓ 越小越好）<br>makespan, ↓ lower is better | 2006 | — | — | 0 | — |
+| [p010 · 蒙娜丽莎 10 万城市旅行商问题](problems/p010-mona-lisa-tsp)<br>Mona Lisa 100,000-city TSP | 路线长度（↓ 越小越好）<br>tour length, ↓ lower is better | 5757191 | — | — | 0 | — |
 
-<sub>机器可读版本：[data/board.json](data/board.json)</sub>
+<sub>机器可读版本 · Machine-readable: [data/board.json](data/board.json)</sub>
 <!-- board:end -->
 
 ## 怎么提交

@@ -36,13 +36,14 @@ CONTAINER_START_MARGIN = 30  # 容器启动的额外时间（秒）
 BUILD_TIMEOUT = 900          # 构建验证器镜像的超时（秒）
 _SAFE_PATH_RE = re.compile(r"/[A-Za-z0-9/._-]+")
 _SAFE_IMAGE_RE = re.compile(r"[a-z0-9][a-z0-9._/-]*(?::[A-Za-z0-9._-]+)?(?:@sha256:[0-9a-f]{64})?")
+bi = F.bi
 
 
 def docker_command(image: str, shot_dir: Path, name: str) -> list:
     """验证器容器：无网络、只读根文件系统、nobody 用户、内存与进程数受限、shot 目录只读挂载。"""
     src = str(Path(shot_dir).absolute())
     if not _SAFE_PATH_RE.fullmatch(src) or not _SAFE_IMAGE_RE.fullmatch(image):
-        raise F.VerifierError("非法的镜像名或挂载路径")
+        raise F.VerifierError(bi("非法的镜像名或挂载路径", "Invalid image name or mount path"))
     return [
         "docker", "run", "--rm", "--name", name,
         "--network=none",
@@ -63,7 +64,7 @@ def build_command(image: str, problem_dir: Path) -> list:
     """用 main 上题目目录里的 verify/Dockerfile 构建验证器镜像，构建上下文是题目目录。"""
     ctx = str(Path(problem_dir).absolute())
     if not _SAFE_PATH_RE.fullmatch(ctx) or not _SAFE_IMAGE_RE.fullmatch(image):
-        raise F.VerifierError("非法的镜像名或构建路径")
+        raise F.VerifierError(bi("非法的镜像名或构建路径", "Invalid image name or build path"))
     return ["docker", "build", "--pull", "-t", image, "-f", f"{ctx}/verify/Dockerfile", ctx]
 
 
@@ -71,12 +72,12 @@ def build_image(image: str, problem_dir: Path) -> None:
     try:
         proc = subprocess.run(build_command(image, problem_dir), capture_output=True, timeout=BUILD_TIMEOUT)
     except subprocess.TimeoutExpired:
-        raise F.VerifierError("构建验证器镜像超时") from None
+        raise F.VerifierError(bi("构建验证器镜像超时", "Building the verifier image timed out")) from None
     except OSError:
-        raise F.VerifierError("无法启动 docker") from None
+        raise F.VerifierError(bi("无法启动 docker", "Cannot start docker")) from None
     if proc.returncode != 0:
         print(proc.stderr.decode("utf-8", "replace")[-2000:], file=sys.stderr)
-        raise F.VerifierError("构建验证器镜像失败")
+        raise F.VerifierError(bi("构建验证器镜像失败", "Building the verifier image failed"))
 
 
 def run_verifier_docker(image: str, shot_dir: Path, timeout: int) -> dict:
@@ -87,14 +88,15 @@ def run_verifier_docker(image: str, shot_dir: Path, timeout: int) -> dict:
     except subprocess.TimeoutExpired:
         subprocess.run(["docker", "kill", name], capture_output=True, timeout=30)
         subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=30)
-        raise F.VerifierRejected(f"验证超时（{timeout} 秒）") from None
+        raise F.VerifierRejected(bi(f"验证超时（{timeout} 秒）", f"Verification timed out ({timeout} s)")) from None
     except OSError:
-        raise F.VerifierError("无法启动 docker") from None
+        raise F.VerifierError(bi("无法启动 docker", "Cannot start docker")) from None
     if proc.returncode == 137:
-        raise F.VerifierRejected("验证器被强制终止（可能超出内存或进程数限制）")
+        raise F.VerifierRejected(bi("验证器被强制终止（可能超出内存或进程数限制）",
+                                    "The verifier was killed (probably over the memory or process limit)"))
     if proc.returncode != 0:
         print(proc.stderr.decode("utf-8", "replace")[-2000:], file=sys.stderr)
-        raise F.VerifierError(f"容器退出码 {proc.returncode}")
+        raise F.VerifierError(bi(f"容器退出码 {proc.returncode}", f"Container exit code {proc.returncode}"))
     return F.parse_verifier_output(proc.stdout)
 
 
@@ -137,7 +139,8 @@ def build_result(work: Path, root: Path, make_verifier) -> dict:
     try:
         control = F.read_json_file(work / "control.json")
     except (OSError, ValueError):
-        res["messages"] = ["未能读取暂停开关的结果，按出错处理"]
+        res["messages"] = [bi("未能读取暂停开关的结果，按出错处理",
+                                "Could not read the pause switch result; treated as an error")]
         return res
     if control.get("paused") is not False:
         res["status"] = "paused"
@@ -147,7 +150,7 @@ def build_result(work: Path, root: Path, make_verifier) -> dict:
     try:
         gate = F.read_json_file(work / "gate.json")
     except (OSError, ValueError):
-        res["messages"] = ["门禁没有产出结果"]
+        res["messages"] = [bi("门禁没有产出结果", "The gate produced no result")]
         return res
     res["pr"] = gate.get("pr")
     if not gate.get("ok"):
@@ -160,18 +163,19 @@ def build_result(work: Path, root: Path, make_verifier) -> dict:
     try:
         problem = F.load_problem_dir(root, pdir)
     except (F.ConfigError, OSError, ValueError):
-        res["messages"] = ["门禁给出的题目目录在 main 上无法读取"]
+        res["messages"] = [bi("门禁给出的题目目录在 main 上无法读取",
+                                "The problem directory given by the gate cannot be read on main")]
         return res
     if not (isinstance(login, str) and F.LOGIN_RE.fullmatch(login)
             and isinstance(shot_id, str) and F.SHOT_ID_RE.fullmatch(shot_id)):
-        res["messages"] = ["门禁结果格式异常"]
+        res["messages"] = [bi("门禁结果格式异常", "The gate result is malformed")]
         return res
     res.update({k: v for k, v in base_result(problem).items() if k not in ("pr", "base_sha")})
     res["shot"] = {"problem": pdir, "login": login, "shot_id": shot_id}
     try:
         verifier = make_verifier(problem)
     except F.VerifierError as e:
-        res["messages"] = [f"验证器准备失败：{e}"]
+        res["messages"] = [F.bi_prefix("验证器准备失败：", "Preparing the verifier failed: ", e)]
         return res
     merged, _source = F.list_merged_shots(root, pdir, exclude={f"{login}/{shot_id}"})
     res.update(F.evaluate_shot(problem, work / "shot", login, verifier, merged))
@@ -201,7 +205,8 @@ def main(argv: list | None = None) -> int:
     except Exception as e:  # 结果文件必须产出，回帖 job 才能说明情况
         print(f"score internal error: {type(e).__name__}", file=sys.stderr)
         res = base_result()
-        res["messages"] = ["打分脚本内部错误，请联系裁判组"]
+        res["messages"] = [bi("打分脚本内部错误，请联系裁判组",
+                                "Internal error in the scoring script; please contact the referees")]
     F.write_json_file(args.out, res)
     print(f"score: {res['status']}")
     return 0

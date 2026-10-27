@@ -51,7 +51,8 @@ REGULAR_MODES = frozenset({"100644", "100755"})
 SHA_RE = F.COMMIT_SHA_RE
 MD_SPECIAL_RE = re.compile(r"([\\`*_{}\[\]()<>#+!|~&])")
 TABLE_HEAD = (
-    "| 题目 | 指标 | 预设基线 | 当前纪录 | 纪录保持者 | 有效突破 | 进度 |",
+    "| 题目 · Problem | 指标 · Metric | 预设基线 · Baseline | 当前纪录 · Record | 纪录保持者 · Holder "
+    "| 有效突破 · Breakthroughs | 进度 · Progress |",
     "| --- | --- | ---: | ---: | --- | ---: | ---: |",
 )
 
@@ -447,13 +448,22 @@ def progress_cell(p: dict[str, Any]) -> str:
     return cell if p["progress_pct"] is None else f"{cell}（{p['progress_pct']:.1f}%）"
 
 
+def _en_line(text: Any, suffix: str = "") -> str:
+    """表格单元格里的英文第二行（text 是第三方数据，转义；suffix 是固定文字）；没有英文时为空。"""
+    return f"<br>{md_escape(text)}{suffix}" if isinstance(text, str) and text.strip() else ""
+
+
 def render_board(board: dict[str, Any]) -> str:
-    """记分牌区：表头总是显示；没有题目时只有表头。不写日期，也不写状态文字。"""
+    """记分牌区：表头总是显示；没有题目时只有表头。不写日期，也不写状态文字。
+    题目与指标两格是中文一行、英文一行（<br> 换行）。"""
     lines: list[str] = list(TABLE_HEAD)
     for p in board["problems"]:
-        title = f"[{md_escape(p['id'])} · {md_escape(p['title_zh'])}]({p['dir']})"
-        arrow = "↑ 越大越好" if p["direction"] == "max" else "↓ 越小越好"
-        metric = f"{md_escape(p['metric_zh'])}（{arrow}）"
+        title = f"[{md_escape(p['id'])} · {md_escape(p['title_zh'])}]({p['dir']})" + _en_line(p.get("title_en"))
+        if p["direction"] == "max":
+            arrow, arrow_en = "↑ 越大越好", "↑ higher is better"
+        else:
+            arrow, arrow_en = "↓ 越小越好", "↓ lower is better"
+        metric = f"{md_escape(p['metric_zh'])}（{arrow}）" + _en_line(p.get("metric_en"), f", {arrow_en}")
         cur = p["current"]
         if cur:
             last = p["records"][-1]
@@ -466,7 +476,7 @@ def render_board(board: dict[str, Any]) -> str:
             f"| {title} | {metric} | {F.fmt_display(F.parse_rational(p['baseline']))} | {score} | {holder} "
             f"| {len(p['records'])} | {progress_cell(p)} |"
         )
-    lines += ["", "<sub>机器可读版本：[data/board.json](data/board.json)</sub>"]
+    lines += ["", "<sub>机器可读版本 · Machine-readable: [data/board.json](data/board.json)</sub>"]
     return "\n".join(lines)
 
 
