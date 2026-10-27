@@ -1,4 +1,6 @@
-# 安全与漏洞报告
+# 安全与漏洞报告 · Security
+
+[English below](#english)
 
 本仓库启用了 GitHub 的私密漏洞报告（private vulnerability reporting）。
 
@@ -27,3 +29,35 @@
 ## 善意研究
 
 只在自己的 fork 或本地环境里验证问题；不要攻击他人的 PR、账号或任何基础设施，不要用漏洞去拿纪录。
+
+---
+
+## English
+
+This repository has GitHub private vulnerability reporting enabled.
+
+### How to report
+
+1. Open the **Security** tab of this repository and click **Report a vulnerability** ([direct link](https://github.com/few-shots/few-shots/security/advisories/new)).
+2. Say which problem or workflow is affected, how to reproduce it, and what you think the impact is.
+3. Only you and the referees can see the report. Do not open a public issue, PR or discussion, and do not disclose it elsewhere.
+
+### What counts
+
+- an invalid certificate passes a verifier, or a score is computed wrongly;
+- the scoring workflow can be injected with commands, gains permissions it should not have, or can be changed by a PR to alter its own scoring;
+- participants can manipulate the board or the big-screen data;
+- any token or key leaks.
+
+### What happens next
+
+1. The referees acknowledge within 24 hours and assess the report.
+2. If it holds, they set `paused = true` in `control.toml`. Once merged, new scoring runs and every bot reply read it: the bot says scoring is paused, every PR's `few-shots/verdict` stays pending so nothing can be merged, and the board stops updating.
+3. After the fix, the affected problems' record chains are recomputed one by one with the fixed verifier, the board is corrected, and the switch is turned back.
+4. The reporter is credited publicly, unless they prefer not to be named.
+
+Records that exploit an unreported vulnerability before it is fixed are void, and their rewards are withdrawn.
+
+### Good-faith research
+
+Verify problems only in your own fork or local environment. Do not attack other people's PRs, accounts or any infrastructure, and do not use a vulnerability to set records.
