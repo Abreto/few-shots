@@ -352,15 +352,18 @@ def _next_step(status: str, sandbox: bool, stale: bool) -> str:
                   "（或由裁判点 Update branch），推送后会重新打分。",
                   "Do not merge. A new push to the PR is rescored automatically; if main has moved on, merge the "
                   "latest main first (or a referee clicks Update branch), and the push is rescored.")
+    if status == "breakthrough" and sandbox:
+        return bi("下一步：这是沙盒题，用来练习整个流程，验证器的结果就是上面这条。沙盒题不合并、不上记分牌、不发奖励，"
+                  "自动裁判会回一条说明后关闭这个 PR。",
+                  "Next: this is the sandbox, for practising the whole flow; the verifier's result above is the outcome. "
+                  "Sandbox shots are not merged, not on the board and earn no reward; the automatic referee replies and "
+                  "closes this PR.")
     if status == "breakthrough":
         zh = ("下一步：自动裁判复核 SHOT.md 和 PR 说明后合并（条件见 RULES.md「合并」，不满足的转人工复核）；"
               "合并后计入纪录链，并汇编进这道题的 FEWSHOT.md。")
         en = ("Next: the automatic referee reviews SHOT.md and the PR text and merges it (conditions in RULES.md, "
               "Merging; otherwise a referee reviews it by hand); once merged it joins the record chain and is "
               "compiled into this problem's FEWSHOT.md.")
-        if sandbox:
-            return bi(zh + "沙盒题的成绩不进记分牌，不发奖励。",
-                      en + " Sandbox results do not go on the board and earn no reward.")
         return bi(zh + "合并前请用这个 GitHub 账号在 https://agi.bar/github 登录一次、授权邮箱：酒水兑换券和到账通知都发到这里，"
                   "授权后自动合并。每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券。",
                   en + " Before the merge, sign in once with this GitHub account at https://agi.bar/github and share your "

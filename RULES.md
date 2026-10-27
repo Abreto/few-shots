@@ -19,7 +19,7 @@
 - 一个 shot 是**有效突破**，当且仅当：验证器确认证书合法；`SHOT.md` 的 `claimed_score` 与验证器的成绩完全相等（按精确有理数比较）；成绩达到预设基线；优于当前纪录，并且至少改进 ε。
 - 证书本质相同（验证器给出的 `canonical_hash` 相同）的，以 main 上已有的 shot、或机器人先验证到的 PR 为准，其余判为重复。
 - 几个 PR 先后冲同一条纪录时，按机器人首次确认有效突破的先后处理；这个时间记在机器人的评论里，后续推送不会覆盖。
-- 沙盒题（`problem.toml` 中 `sandbox = true`）不上记分牌，不发奖励。
+- 沙盒题（`problem.toml` 中 `sandbox = true`）用来练习整个流程：有效突破也不合并，自动裁判回复后关闭 PR；不上记分牌，不发奖励，纪录始终是预设基线。
 
 ## 合并
 
@@ -28,8 +28,7 @@
   - 只新增一个 shot 目录，目录里的账号名就是开 PR 的账号；
   - 这个 GitHub 账号注册满 14 天，24 小时内自动合并不超过 3 次；
   - `SHOT.md`、PR 标题和说明通过内容审核：如实描述思路，不含写给审核者或 agent 的指令，不含广告、他人的个人信息、密钥、冒名，与验证器的结果一致；
-  - 作者已用这个 GitHub 账号在 https://agi.bar/github 登录一次、授权邮箱（酒水券和到账通知发到这里）。还没授权的，PR 会加上 `awaiting-email` 标签并留言提醒，授权后自动合并；7 天内没有授权的转人工复核。沙盒题不需要。
-- 不满足的，PR 会加上 `needs-referee` 标签并写明原因，由裁判组人工复核。加了 `hold` 标签的 PR 不会自动合并。
+  - 作者已用这个 GitHub 账号在 https://agi.bar/github 登录一次、授权邮箱（酒水券和到账通知发到这里）。还没授权的，PR 会加上 `awaiting-email` 标签并留言提醒，授权后自动合并；7 天内没有授权的转人工复核。- 不满足的，PR 会加上 `needs-referee` 标签并写明原因，由裁判组人工复核。加了 `hold` 标签的 PR 不会自动合并。
 - 裁判组可以随时用 `control.toml` 的 `auto_merge` 关掉自动合并，回到全部人工复核；`paused` 暂停一切打分和合并。
 - GitHub 的规则集是另一道锁：合并仍然要求 `few-shots/verdict` 通过（基于最新的 main）和一位裁判的批准。
 - main 前进后（别的 shot 被合并，或记分牌更新），开放的 PR 要先合并最新的 main，机器人按新纪录重新打分。
@@ -64,7 +63,7 @@ Each problem is an unsolved problem in math, science or engineering whose progre
 - A shot is a **valid breakthrough** if and only if: the verifier accepts the certificate; `claimed_score` in `SHOT.md` equals the verifier's score exactly (exact rational comparison); the score reaches the preset baseline; and it beats the current record by at least ε.
 - Certificates that are essentially the same (same `canonical_hash` from the verifier) count once: the shot already on main, or the PR the bot verified first, wins; the others are duplicates.
 - When several PRs go for the same record, they are handled in the order in which the bot first confirmed each as a valid breakthrough; that time is recorded in the bot's comment and later pushes do not change it.
-- Sandbox problems (`sandbox = true` in `problem.toml`) are not on the board and earn no rewards.
+- Sandbox problems (`sandbox = true` in `problem.toml`) are for practising the whole flow: even a valid breakthrough is not merged, and the automatic referee replies and closes the PR. They are not on the board and earn no rewards; their record stays at the preset baseline.
 
 ### Merging
 
@@ -73,7 +72,7 @@ Each problem is an unsolved problem in math, science or engineering whose progre
   - the PR adds exactly one shot directory, named after the account that opened the PR;
   - the GitHub account is at least 14 days old and has had at most 3 automatic merges in the last 24 hours;
   - `SHOT.md`, the PR title and description pass a content review: an honest description of the approach, no instructions addressed to reviewers or agents, no advertising, no other people's personal data, no secrets, no impersonation, consistent with the verifier's result;
-  - the author has signed in once with this GitHub account at https://agi.bar/github and shared their email (the drink voucher and its notice go there). Until then the PR gets the `awaiting-email` label and a reminder, and merges automatically once that is done; without it within 7 days, a referee takes over. Not needed for sandbox problems.
+  - the author has signed in once with this GitHub account at https://agi.bar/github and shared their email (the drink voucher and its notice go there). Until then the PR gets the `awaiting-email` label and a reminder, and merges automatically once that is done; without it within 7 days, a referee takes over.
 - Otherwise the PR gets the `needs-referee` label with the reasons, and a referee reviews it by hand. PRs labelled `hold` are never merged automatically.
 - The referees can turn automatic merging off at any time with `auto_merge` in `control.toml`; `paused` stops all scoring and merging.
 - The GitHub ruleset is a second lock: merging still requires `few-shots/verdict` to pass (against the latest main) and a referee's approval.
