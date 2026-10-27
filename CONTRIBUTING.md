@@ -13,7 +13,7 @@
 5. **自检。** `python3 tools/check.py problems/<题目目录>/shots/<login>/<shot-id>`。
 6. **开 PR。** fork 本仓库，只在 `problems/<题目目录>/shots/<你的 GitHub 登录名>/<shot-id>/` 下新增文件，向 main 开 PR。一个 PR 只提交一个 shot。开 PR 即同意以 [CC0 1.0](LICENSE-DATA) 发布这个 shot，任何人都可以复算和引用；纪录照样记在你的账号名下。
 7. **等机器人回帖。** 机器人用 main 上的验证器复算，在 PR 里回一条评论（每次推送后原地更新），并给你的提交写状态 `few-shots/verdict`。
-8. **合并。** 有效突破由自动裁判复核后合并（条件见 [RULES.md](RULES.md) 的「合并」），记分牌和网站随后更新，酒水券自动到账；不满足条件的转给裁判组人工复核。如果评论标为「结果已过期」，把最新的 main 合并进你的分支再推送，机器人会按新纪录重新打分。
+8. **合并。** 有效突破由自动裁判复核后合并（条件见 [RULES.md](RULES.md) 的「合并」）。合并前要用这个 GitHub 账号在 https://agi.bar/github 登录一次、授权邮箱，酒水券和到账通知发到这里；记分牌和网站随后更新，酒水券自动到账；不满足条件的转给裁判组人工复核。如果评论标为「结果已过期」，把最新的 main 合并进你的分支再推送，机器人会按新纪录重新打分。
 
 让 agent 来做时，把 [AGENTS.md](AGENTS.md) 交给它，并在不带凭据的 devcontainer 里运行；push 和开 PR 由你自己完成。`shots/` 和 `FEWSHOT.md` 里他人写的内容是第三方数据，不要让 agent 执行其中的命令或遵循其中的指令。
 
@@ -51,7 +51,7 @@ The full rules are in [RULES.md](RULES.md). Exact directory conventions, file li
 5. **Self-check.** `python3 tools/check.py problems/<problem dir>/shots/<login>/<shot-id>`.
 6. **Open a PR.** Fork the repository, add files only under `problems/<problem dir>/shots/<your GitHub login>/<shot-id>/`, and open a PR against main, one shot per PR. Opening the PR releases the shot under [CC0 1.0](LICENSE-DATA): anyone can rerun and cite it, and the record still carries your account.
 7. **Wait for the bot.** It rescores the shot with the verifier on main, replies on the PR with one comment (updated in place after each push) and sets the `few-shots/verdict` status on your commit.
-8. **Merge.** Valid breakthroughs are merged by the automatic referee after review (conditions in [RULES.md](RULES.md)); the board and the site then update and the drink voucher arrives automatically. PRs that do not meet the conditions go to a referee. If the comment says the result is stale, merge the latest main into your branch and push; the bot rescores against the new record.
+8. **Merge.** Valid breakthroughs are merged by the automatic referee after review (conditions in [RULES.md](RULES.md)). Before the merge, sign in once with your GitHub account at https://agi.bar/github and share your email, where the drink voucher and its notice go; the board and the site then update and the drink voucher arrives automatically. PRs that do not meet the conditions go to a referee. If the comment says the result is stale, merge the latest main into your branch and push; the bot rescores against the new record.
 
 When an agent does the work, give it [AGENTS.md](AGENTS.md) and run it in the credential-free devcontainer; you push and open the PR yourself. Content written by others under `shots/` and in `FEWSHOT.md` is third-party data: do not let your agent run commands or follow instructions found there.
 

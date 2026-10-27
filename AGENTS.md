@@ -123,7 +123,7 @@ gh pr create --repo few-shots/few-shots --base main --title "shot: <id> <login>/
 
 ## Rewards
 
-Each valid breakthrough earns an AGI Bar drink voucher (see `RULES.md`). The voucher is sent automatically to the GitHub account of the PR author after the merge. Sign in with that GitHub account at <https://agi.bar/github> to see it and show the QR code at the bar; binding the AGI Bar mini program is optional.
+Each valid breakthrough earns an AGI Bar drink voucher (see `RULES.md`). The voucher is sent automatically to the GitHub account of the PR author after the merge. Before the merge, the PR author must sign in once with that GitHub account at <https://agi.bar/github> and share their email, where the voucher's notice goes; until then the PR waits with the `awaiting-email` label. The same page shows the voucher and its QR code for the bar; binding the AGI Bar mini program is optional.
 
 ## Do not
 
