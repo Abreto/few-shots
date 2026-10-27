@@ -1,0 +1,4 @@
+# The verifier image needs only these two files; the build context is the problem directory
+*
+!problem.toml
+!verify/verify.py

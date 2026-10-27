@@ -317,7 +317,7 @@ class CommittedStateTest(unittest.TestCase):
         self.assertEqual(bb.dump_json(board), (ROOT / "data" / "board.json").read_text("utf-8"))
         self.assertEqual(bb.dump_json(cache), (ROOT / "data" / "cache.json").read_text("utf-8"))
         self.assertEqual(readme, (ROOT / "README.md").read_text("utf-8"))
-        self.assertEqual(board["problems"], [])     # 只有沙盒题
+        self.assertEqual([p["id"] for p in board["problems"]], [f"p{i:03d}" for i in range(1, 11)])  # 沙盒题不在里面
         region = readme[readme.index(bb.BOARD_START):readme.index(bb.BOARD_END)]
         self.assertIn(bb.TABLE_HEAD[0], region)
         self.assertNotRegex(region, r"20[0-9]{2}-[01][0-9]-[0-3][0-9]")

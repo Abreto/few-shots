@@ -1,0 +1,31 @@
+# Problem metadata. Only the referees can change this file (see .github/CODEOWNERS).
+# Scoring always uses this file as it is on main; changes to it in a PR have no effect.
+
+id = "p001"
+slug = "kissing-number-11d"
+title_zh = "11 维接吻数"
+title_en = "Kissing number in dimension 11"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "球数"
+metric_en = "spheres"
+direction = "max"
+progress_unit = "个"
+
+baseline_score = "604"            # 604 vectors in Z[sqrt 2]^11, Einstein Arena (2026)
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 1048576
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 2097152
+
+[params]
+dimension = 11
