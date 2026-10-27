@@ -1,42 +1,42 @@
-# p000 · Golomb 尺（沙盒）
+# p000 · Golomb ruler (sandbox)
 
 <!-- few-shots:header -->
 | key | value |
 | --- | --- |
 | id | `p000` |
 | metric | 长度 / length |
-| direction | `min`（越小越好） |
+| direction | `min` (lower is better) |
 | baseline | `2047` |
-| epsilon | `1`（`absolute`） |
+| epsilon | `1` (`absolute`) |
 | verifier | `python3 problems/p000-sandbox/verify/verify.py <shot_dir>` |
 <!-- /few-shots:header -->
 
-p000 是沙盒题，用来走通提交流程：成绩不进记分牌，不发奖励。
+p000 is the sandbox problem for walking through a submission end to end. Its scores are not on the board and earn no rewards.
 
-## 问题
+## Problem
 
-一把 Golomb 尺是一组互不相同的整数刻度，其中任意两个刻度之差都互不相同。尺子的长度是最大刻度减最小刻度。
+A Golomb ruler is a set of distinct integer marks such that all pairwise differences between marks are distinct. Its length is the largest mark minus the smallest.
 
-给定刻度个数 n = 12（`problem.toml` 的 `[params] n`），找一把尽量短的 Golomb 尺。
+For n = 12 marks (`[params] n` in `problem.toml`), find a Golomb ruler that is as short as possible.
 
-## 为什么重要
+## Why it matters
 
-Golomb 尺用于射电望远镜阵列的天线布置和纠错码的设计。n = 12 时的最短长度 85 已经被证明是最优的，所以这道题的答案可以核对，适合用来练习提交。
+Golomb rulers are used to place antennas in radio-telescope arrays and to design error-correcting codes. For n = 12 the shortest length, 85, is proven optimal, so answers here can be checked against a known value, which makes it a good practice problem.
 
-## 证书
+## Certificate
 
-- 文件名 `certificate.json`，内容形如 `{"marks": [0, 1, 3, …]}`；可以带 `"n": 12`，不允许其他键。
-- `marks` 恰好有 12 个刻度。每个刻度都是 JSON 整数（不能是小数、字符串或布尔值），绝对值不超过 10^15，互不相同，顺序不限。
-- 任意两个刻度之差互不相同。
-- 文件为 UTF-8 编码的 JSON，不超过 64 KiB，嵌套不超过 8 层，不允许重复的键。
-- 成绩是长度，总是整数，例如 `"85"`。
-- 规范化：刻度平移到从 0 开始，取自身与镜像中字典序较小的一个；`canonical_hash` 是规范化 JSON 的 sha256。同一把尺子平移或镜像后得到同一个哈希。
+- File name `certificate.json`, shaped like `{"marks": [0, 1, 3, …]}`. It may also carry `"n": 12`; no other keys are allowed.
+- `marks` has exactly 12 entries. Each is a JSON integer (not a float, string or boolean) with absolute value at most 10^15. Marks are distinct and may come in any order.
+- All pairwise differences are distinct.
+- The file is UTF-8 JSON, at most 64 KiB, nested at most 8 levels, with no duplicate keys.
+- The score is the length, always an integer, for example `"85"`.
+- Canonical form: shift the marks to start at 0 and take the lexicographically smaller of the ruler and its mirror image. `canonical_hash` is the sha256 of the canonical JSON, so shifted or mirrored copies of one ruler hash the same.
 
-## 预设基线
+## Baseline
 
-刻度取 2^k − 1（k = 0, 1, …, 11）：0, 1, 3, 7, 15, …, 2047。任意两个刻度之差都形如 2^j − 2^i，二进制表示互不相同，所以这是一把合法的 Golomb 尺，长度 2047。
+Marks 2^k − 1 for k = 0, 1, …, 11: 0, 1, 3, 7, 15, …, 2047. Every difference has the form 2^j − 2^i, and these have distinct binary expansions, so this is a valid Golomb ruler of length 2047.
 
-证书在 `baseline/certificate.json`，复现：
+The certificate is `baseline/certificate.json`. To reproduce:
 
 ```bash
 python3 problems/p000-sandbox/verify/verify.py problems/p000-sandbox/baseline

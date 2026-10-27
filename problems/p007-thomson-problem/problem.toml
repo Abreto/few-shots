@@ -1,0 +1,31 @@
+# Problem metadata. Only the referees can change this file (see .github/CODEOWNERS).
+# Scoring always uses this file as it is on main; changes to it in a PR have no effect.
+
+id = "p007"
+slug = "thomson-problem"
+title_zh = "汤姆孙问题（N = 960）"
+title_en = "Thomson problem for 960 points"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "库仑能量"
+metric_en = "Coulomb energy"
+direction = "min"
+progress_unit = "单位"
+
+baseline_score = "444368.4373479895"  # verifier score of the Amore-Wales (2026) configuration, rational approximation
+epsilon = "0.000001"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 120
+max_certificate_bytes = 262144
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 2097152
+
+[params]
+n = 960

@@ -1,0 +1,4 @@
+# 验证器镜像只需要这两个文件；构建上下文是本题目录
+*
+!problem.toml
+!verify/verify.py

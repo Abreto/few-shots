@@ -1,0 +1,32 @@
+# Problem metadata. Only the referees can change this file (see .github/CODEOWNERS).
+# Scoring always uses this file as it is on main; changes to it in a PR have no effect.
+
+id = "p004"
+slug = "shannon-capacity-c7"
+title_zh = "七边形的香农容量"
+title_en = "Shannon capacity of the 7-cycle"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "点数"
+metric_en = "points"
+direction = "max"
+progress_unit = "个"
+
+baseline_score = "134753"         # independent set in C7^10, Itty, Rosin, Carstensen, Reichman (2026)
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 4194304
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 5242880
+
+[params]
+cycle = 7
+dimension = 10

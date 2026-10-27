@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import re
+import tomllib
 import unittest
 
 from helpers import ROOT, SANDBOX, F
 
-SECTIONS = ("## 问题", "## 为什么重要", "## 证书", "## 预设基线")
+SECTIONS = ("## Problem", "## Why it matters", "## Certificate", "## Baseline")
 
 
 class ProblemDirsTest(unittest.TestCase):
@@ -73,12 +74,19 @@ class ProblemDirsTest(unittest.TestCase):
                 d = ROOT / "problems" / name
                 res = F.run_verifier_local(d / "baseline", p.verifier_timeout_sec, d / "verify" / "verify.py")
                 self.assertTrue(res["valid"], res)
-                self.assertEqual(res["score"], p.baseline)
+                with open(d / "problem.toml", "rb") as f:
+                    kind = tomllib.load(f).get("baseline_kind", "certificate")
+                self.assertIn(kind, ("certificate", "literature"))
+                if kind == "certificate":
+                    self.assertEqual(res["score"], p.baseline)
+                else:
+                    # 基线取文献纪录；baseline/ 里是能复现的最好公开证书，不能比基线更好
+                    self.assertTrue(F.at_least(p.direction, p.baseline, res["score"]), res)
 
     def test_sandbox(self):
         p = F.load_problem_dir(ROOT, SANDBOX)
         self.assertTrue(p.sandbox)
-        self.assertIn("沙盒题", (ROOT / "problems" / SANDBOX / "PROBLEM.md").read_text(encoding="utf-8"))
+        self.assertIn("sandbox problem", (ROOT / "problems" / SANDBOX / "PROBLEM.md").read_text(encoding="utf-8"))
 
     def test_load_problem_dir_rejects_bad_names(self):
         for bad in ("../p000-sandbox", "p000", "p000-sandbox/", "", "p001-sandbox"):

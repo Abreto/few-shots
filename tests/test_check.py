@@ -28,6 +28,16 @@ class ShotMdTest(unittest.TestCase):
         self.assertEqual(shot.builds_on, ("bob/x-1",))
         self.assertEqual(shot.idea, "贪心构造。")
 
+    def test_english_section_headings(self):
+        text = shot_md("alice", "85").replace("## 思路", "## Approach").replace("## 哪里走不通", "## Dead ends")
+        shot = F.parse_shot_md(text)
+        self.assertEqual(shot.idea, "贪心构造。")
+        self.assertTrue(shot.dead_ends)
+        both = shot_md("alice", "85") + "\n## Approach\n\nagain\n"
+        self.assertShotError(both, "not both")
+        empty = shot_md("alice", "85").replace("## 思路", "## Approach").split("## Approach")[0] + "## Approach\n\n## Dead ends\n\nx\n"
+        self.assertShotError(empty, "must not be empty")
+
     def assertShotError(self, text, fragment):
         with self.assertRaises(F.ShotError) as cm:
             F.parse_shot_md(text)

@@ -1,0 +1,31 @@
+# Problem metadata. Only the referees can change this file (see .github/CODEOWNERS).
+# Scoring always uses this file as it is on main; changes to it in a PR have no effect.
+
+id = "p005"
+slug = "cap-set-8d"
+title_zh = "8 维帽集"
+title_en = "Cap set in dimension 8"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "点数"
+metric_en = "points"
+direction = "max"
+progress_unit = "个"
+
+baseline_score = "512"            # 512 points in F_3^8, Romera-Paredes et al. (2023)
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 131072
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 1048576
+
+[params]
+dimension = 8

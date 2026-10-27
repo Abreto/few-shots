@@ -459,11 +459,11 @@ def render_board(board: dict[str, Any]) -> str:
             last = p["records"][-1]
             link = f"https://github.com/{F.REPO}/pull/{cur['pr']}" if cur["pr"] \
                 else f"{p['dir']}/shots/{cur['login']}/{last['shot']}"
-            score, holder = cur["score"], f"[@{cur['login']}]({link})"
+            score, holder = F.fmt_display(F.parse_rational(cur["score"])), f"[@{cur['login']}]({link})"
         else:
             score = holder = "—"
         lines.append(
-            f"| {title} | {metric} | {p['baseline']} | {score} | {holder} "
+            f"| {title} | {metric} | {F.fmt_display(F.parse_rational(p['baseline']))} | {score} | {holder} "
             f"| {len(p['records'])} | {progress_cell(p)} |"
         )
     lines += ["", "<sub>机器可读版本：[data/board.json](data/board.json)</sub>"]

@@ -1,0 +1,31 @@
+# Problem metadata. Only the referees can change this file (see .github/CODEOWNERS).
+# Scoring always uses this file as it is on main; changes to it in a PR have no effect.
+
+id = "p006"
+slug = "labs-100"
+title_zh = "长度 100 的低自相关二元序列"
+title_en = "Low autocorrelation binary sequence of length 100"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "能量"
+metric_en = "energy"
+direction = "min"
+progress_unit = "单位"
+
+baseline_score = "578"            # E = 578 (merit factor 8.6505), Knauer's table (2004); QOBLIB best known value
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 65536
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 524288
+
+[params]
+length = 100

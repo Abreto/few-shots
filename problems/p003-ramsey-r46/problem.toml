@@ -1,0 +1,32 @@
+# Problem metadata. Only the referees can change this file (see .github/CODEOWNERS).
+# Scoring always uses this file as it is on main; changes to it in a PR have no effect.
+
+id = "p003"
+slug = "ramsey-r46"
+title_zh = "Ramsey 数 R(4,6) 的下界"
+title_en = "Lower bound for the Ramsey number R(4,6)"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "顶点数"
+metric_en = "vertices"
+direction = "max"
+progress_unit = "个"
+
+baseline_score = "35"             # 35-vertex (4,6)-graph, Exoo (2012), so R(4,6) >= 36
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 65536
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 524288
+
+[params]
+clique = 4
+independent = 6

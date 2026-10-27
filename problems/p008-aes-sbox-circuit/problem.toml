@@ -1,0 +1,32 @@
+# Problem metadata. Only the referees can change this file (see .github/CODEOWNERS).
+# Scoring always uses this file as it is on main; changes to it in a PR have no effect.
+
+id = "p008"
+slug = "aes-sbox-circuit"
+title_zh = "AES S 盒最小电路"
+title_en = "Smallest circuit for the AES S-box"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "门数"
+metric_en = "gates"
+direction = "min"
+progress_unit = "门"
+
+baseline_score = "106"            # 106 gates over {AND, XOR, XNOR}, Jain (2026)
+baseline_kind = "certificate"     # baseline/certificate.json is that circuit
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 262144
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 1048576
+
+[params]
+max_gates = 2000

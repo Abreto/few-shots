@@ -252,14 +252,29 @@ def verifier_command(problem: Problem) -> str:
     return f"python3 {PROBLEMS_DIR}/{problem.dir}/verify/verify.py <shot_dir>"
 
 
+def fmt_display(x: Fraction) -> str:
+    """给人看的写法：分母只含 2 和 5 时写成精确的有限小数，否则同 fmt。"""
+    d, k2, k5 = x.denominator, 0, 0
+    while d % 2 == 0:
+        d //= 2; k2 += 1
+    while d % 5 == 0:
+        d //= 5; k5 += 1
+    if d != 1 or x.denominator == 1:
+        return fmt(x)
+    k = max(k2, k5)
+    n = abs(x.numerator) * (10 ** k // x.denominator)
+    digits = str(n).rjust(k + 1, "0")
+    return ("-" if x < 0 else "") + digits[:-k] + "." + digits[-k:]
+
+
 def render_problem_header(problem: Problem) -> str:
     """PROBLEM.md 开头的固定表头：每道题同样的键、同样的顺序，数值取自 problem.toml。"""
     rows = (
         ("id", f"`{problem.id}`"),
         ("metric", f"{problem.metric_zh} / {problem.metric_en}"),
-        ("direction", f"`{problem.direction}`（{problem.direction_zh}）"),
-        ("baseline", f"`{fmt(problem.baseline)}`"),
-        ("epsilon", f"`{fmt(problem.epsilon)}`（`{problem.epsilon_mode}`）"),
+        ("direction", f"`{problem.direction}` ({'higher' if problem.direction == 'max' else 'lower'} is better)"),
+        ("baseline", f"`{fmt_display(problem.baseline)}`"),
+        ("epsilon", f"`{fmt_display(problem.epsilon)}` (`{problem.epsilon_mode}`)"),
         ("verifier", f"`{verifier_command(problem)}`"),
     )
     lines = [HEADER_START, "| key | value |", "| --- | --- |"]
@@ -313,6 +328,8 @@ SHOT_FIELDS = ("login", "builds_on", "claimed_score", "agent", "models", "tokens
 SHOT_REQUIRED = ("login", "builds_on", "claimed_score")
 SECTION_IDEA = "思路"
 SECTION_DEAD_ENDS = "哪里走不通"
+# SHOT.md 也可以用英文标题；两种写法等价，同一份里只能用一种
+SECTION_ALIASES = {SECTION_IDEA: "Approach", SECTION_DEAD_ENDS: "Dead ends"}
 _HEADING_RE = re.compile(r"(#{1,6})[ \t]+(.*?)[ \t#]*")
 
 
@@ -445,10 +462,15 @@ def parse_shot_md(text: str) -> Shot:
     sections, sec_errs = split_sections("\n".join(lines[end + 1:]), first_line=end + 2)
     errs.extend(sec_errs)
     for name in (SECTION_IDEA, SECTION_DEAD_ENDS):
+        alias = SECTION_ALIASES[name]
+        if name in sections and alias in sections:
+            errs.append(f"「## {name}」和「## {alias}」只能写一个 / use either ## {name} or ## {alias}, not both")
+        elif alias in sections:
+            sections[name] = sections.pop(alias)
         if name not in sections:
-            errs.append(f"正文缺少二级标题「## {name}」")
+            errs.append(f"正文缺少二级标题「## {name}」或「## {alias}」 / missing section ## {alias}")
         elif not sections[name]:
-            errs.append(f"「## {name}」不能为空")
+            errs.append(f"「## {name}」不能为空 / ## {alias} must not be empty")
     if errs:
         raise ShotError(errs)
     return Shot(

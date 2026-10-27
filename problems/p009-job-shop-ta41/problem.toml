@@ -1,0 +1,34 @@
+# Problem metadata. Only the referees can change this file (see .github/CODEOWNERS).
+# Scoring always uses this file as it is on main; changes to it in a PR have no effect.
+
+id = "p009"
+slug = "job-shop-ta41"
+title_zh = "作业车间调度 ta41"
+title_en = "Job-shop scheduling, Taillard ta41"
+kind = "certificate"
+sandbox = false
+
+metric_zh = "完工时间"
+metric_en = "makespan"
+direction = "min"
+progress_unit = "单位"
+
+baseline_score = "2006"           # best known upper bound, Shylo and Pardalos (2008), solution on optimizizer.com
+baseline_kind = "certificate"     # baseline/certificate.json is that solution
+epsilon = "1"
+epsilon_mode = "absolute"
+progress_transform = "linear"
+
+verifier_timeout_sec = 60
+max_certificate_bytes = 65536
+
+[submission]
+max_files = 8
+max_file_bytes = 262144
+max_shot_md_bytes = 32768
+max_total_bytes = 524288
+
+[params]
+instance = "ta41"
+jobs = 30
+machines = 20
