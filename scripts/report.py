@@ -353,15 +353,17 @@ def _next_step(status: str, sandbox: bool, stale: bool) -> str:
                   "Do not merge. A new push to the PR is rescored automatically; if main has moved on, merge the "
                   "latest main first (or a referee clicks Update branch), and the push is rescored.")
     if status == "breakthrough":
-        zh = "下一步：裁判组复核后手动合并；合并后计入纪录链，并汇编进这道题的 FEWSHOT.md。"
-        en = ("Next: the referees review and merge it; once merged it joins the record chain and is compiled "
-              "into this problem's FEWSHOT.md.")
+        zh = ("下一步：自动裁判复核 SHOT.md 和 PR 说明后合并（条件见 RULES.md「合并」，不满足的转人工复核）；"
+              "合并后计入纪录链，并汇编进这道题的 FEWSHOT.md。")
+        en = ("Next: the automatic referee reviews SHOT.md and the PR text and merges it (conditions in RULES.md, "
+              "Merging; otherwise a referee reviews it by hand); once merged it joins the record chain and is "
+              "compiled into this problem's FEWSHOT.md.")
         if sandbox:
             return bi(zh + "沙盒题的成绩不进记分牌，不发奖励。",
                       en + " Sandbox results do not go on the board and earn no reward.")
-        return bi(zh + "每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券和一份可在 AGI Bar 使用的 token。",
-                  en + " Each valid breakthrough earns its author an AGI Bar drink voucher and tokens "
-                  "usable at AGI Bar.")
+        return bi(zh + "每一次有效突破，突破者得到一张 AGI Bar 的酒水兑换券，合并后自动发到 PR 作者的 GitHub 账号。",
+                  en + " Each valid breakthrough earns its author an AGI Bar drink voucher, sent automatically "
+                  "to the PR author's GitHub account after the merge.")
     if status == "paused":
         return bi("裁判组暂时关闭了打分。恢复后推送一个新提交（或关闭再重新打开 PR）即可重新打分。",
                   "The referees have paused scoring. Once it resumes, push a new commit (or close and reopen "

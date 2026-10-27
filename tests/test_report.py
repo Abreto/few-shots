@@ -147,7 +147,8 @@ class RenderTest(unittest.TestCase):
         real = F.Problem(**{**self.problem.__dict__, "sandbox": False, "direction": "max"})
         rep = self.render(result(), real)
         self.assertIn("验证器确认「长度」从 2047 提升到 290。", rep.body)
-        self.assertIn("一张 AGI Bar 的酒水兑换券和一份可在 AGI Bar 使用的 token", rep.body)
+        self.assertIn("一张 AGI Bar 的酒水兑换券，合并后自动发到 PR 作者的 GitHub 账号", rep.body)
+        self.assertNotIn("token", rep.body)
         self.assertIn("The verifier confirms that length increased from 2047 to 290.", rep.body)
         self.assertIn("an AGI Bar drink voucher", rep.body)
 
